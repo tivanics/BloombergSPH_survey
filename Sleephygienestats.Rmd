@@ -254,6 +254,24 @@ ggplotly(sleeptime)
 
 ```{r Applying labels}
 #Tab 1
+sleephygiene$Q9_howoftensleepy <- factor(sleephygiene$Q9_howoftensleepy, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q13_consistentwakeup <- factor(sleephygiene$Q13_consistentwakeup, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q19_howmanyhourssdidyouuseascreen <- factor(sleephygiene$Q19_howmanyhourssdidyouuseascreen, levels = c("0", "1" , "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"))
+sleephygiene$Q18_howoftenpracticemindfullness <- factor(sleephygiene$Q18_howoftenpracticemindfullness, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep <- factor(sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_2_gettingagoodnightssleepisimportantome <- factor(sleephygiene$Q44_2_gettingagoodnightssleepisimportantome, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine <- factor(sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance <- factor(sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy <- factor(sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep <- factor(sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep <- factor(sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep <- factor(sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality <- factor(sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q59_1_icanmaintainhealthysleephabits <- factor(sleephygiene$Q59_1_icanmaintainhealthysleephabits, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep <- factor(sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_3_icanworkoutregularly <- factor(sleephygiene$Q59_3_icanworkoutregularly, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_4_icanmediatebeforebed <- factor(sleephygiene$Q59_4_icanmediatebeforebed, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+
 library(expss)
 sleephygiene = apply_labels(sleephygiene,
                       Q3_role = "What is your role at Bloomberg",
@@ -306,23 +324,6 @@ sleephygiene = apply_labels(sleephygiene,
                       information = "Where have you seen or received information about sleep quality or sleep hygiene?"
 )
 
-sleephygiene$Q9_howoftensleepy <- factor(sleephygiene$Q9_howoftensleepy, levels = c("Rarely", "Sometimes", "Very often", "Always"))
-sleephygiene$Q13_consistentwakeup <- factor(sleephygiene$Q13_consistentwakeup, levels = c("Rarely", "Sometimes", "Very often", "Always"))
-sleephygiene$Q19_howmanyhourssdidyouuseascreen <- factor(sleephygiene$Q19_howmanyhourssdidyouuseascreen, levels = c("4", "5", "6", "7", "8", "9", "10", "11", "12", "14", "15", "16", "17"))
-sleephygiene$Q18_howoftenpracticemindfullness <- factor(sleephygiene$Q18_howoftenpracticemindfullness, levels = c("Rarely", "Sometimes", "Very often", "Always"))
-sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep <- factor(sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_2_gettingagoodnightssleepisimportantome <- factor(sleephygiene$Q44_2_gettingagoodnightssleepisimportantome, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine <- factor(sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance <- factor(sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy <- factor(sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep <- factor(sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep <- factor(sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep <- factor(sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality <- factor(sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-sleephygiene$Q59_1_icanmaintainhealthysleephabits <- factor(sleephygiene$Q59_1_icanmaintainhealthysleephabits, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
-sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep <- factor(sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
-sleephygiene$Q59_3_icanworkoutregularly <- factor(sleephygiene$Q59_3_icanworkoutregularly, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
-sleephygiene$Q59_4_icanmediatebeforebed <- factor(sleephygiene$Q59_4_icanmediatebeforebed, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
 ```
 
 
