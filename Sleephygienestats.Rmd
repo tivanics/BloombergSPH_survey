@@ -232,7 +232,7 @@ sleephygiene <- sleephygiene %>%
 ```
 
 **Plots for wakeup and sleep times**
-```{r fig.width = 17, fig.height = 17}
+```{r fig.width = 14, fig.height = 14}
 library(plotly)
 wakeup <- ggplot(data=sleephygiene, aes(y=Q14_wakeuptime,x=ID)) + 
   geom_point(size=4, color="darkblue") +
