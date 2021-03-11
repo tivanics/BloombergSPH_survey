@@ -227,29 +227,32 @@ sleephygiene <- sleephygiene %>%
     Other.online.source == 1 ~ "Other online source",
     News.sources == 1 ~ "News sources",
     Friends == 1 ~ "Friends",
-    University.wellbeing.resources..Office.of.Wellness.and.Health.Promotion == 1 ~ "University.wellbeing.resources..Office.of.Wellness.and.Health.Promotion"))
+    University.wellbeing.resources..Office.of.Wellness.and.Health.Promotion == 1 ~ "University wellbeing resources"))
 
 ```
 
 **Plots for wakeup and sleep times**
 ```{r}
-ggplot(data=sleephygiene, aes(y=Q14_wakeuptime,x=ID)) + 
+library(plotly)
+wakeup <- ggplot(data=sleephygiene, aes(y=Q14_wakeuptime,x=ID)) + 
   geom_point(size=4, color="darkblue") +
   theme_test() +
   theme(text = element_text(size=32), plot.title = element_text(hjust = 0.5)) +
   labs(title="Wake up times of participants", x="Unique participant", y="Wake up time")
   #+
   #xlim(as.POSIXct(c("2021-03-10 05:00:00", "2021-03-10 12:00:00")))
+ggplotly(wakeup)
 
 #Plot for sleeptime
-ggplot(data=sleephygiene, aes(y=Q16_sleeptime,x=ID)) + 
+sleeptime <- ggplot(data=sleephygiene, aes(y=Q16_sleeptime,x=ID)) + 
    geom_point(size=4, color="darkred") +
   theme_test() +
   theme(text = element_text(size=32), plot.title = element_text(hjust = 0.5)) +
   labs(title="Sleep times of participants", x="Unique participant", y="Sleep time")
+ggplotly(sleeptime)
 ```
 
-```{r Table 1}
+```{r Applying labels}
 #Tab 1
 library(expss)
 sleephygiene = apply_labels(sleephygiene,
@@ -303,7 +306,27 @@ sleephygiene = apply_labels(sleephygiene,
                       information = "Where have you seen or received information about sleep quality or sleep hygiene?"
 )
 
+sleephygiene$Q9_howoftensleepy <- factor(sleephygiene$Q9_howoftensleepy, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q13_consistentwakeup <- factor(sleephygiene$Q13_consistentwakeup, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q19_howmanyhourssdidyouuseascreen <- factor(sleephygiene$Q19_howmanyhourssdidyouuseascreen, levels = c("4", "5", "6", "7", "8", "9", "10", "11", "12", "14", "15", "16", "17"))
+sleephygiene$Q18_howoftenpracticemindfullness <- factor(sleephygiene$Q18_howoftenpracticemindfullness, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep <- factor(sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_2_gettingagoodnightssleepisimportantome <- factor(sleephygiene$Q44_2_gettingagoodnightssleepisimportantome, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine <- factor(sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance <- factor(sleephygiene$Q44_4_lackofsleepaffectsmyacademicperformance, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy <- factor(sleephygiene$Q44_5_havingaregularsleeproutineimprovesmentalclariy, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep <- factor(sleephygiene$Q44_6_ifeelpositiveaboutthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep <- factor(sleephygiene$Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep <- factor(sleephygiene$Q44_8_ithinkingworkingoutregularlyleadstobettersleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality <- factor(sleephygiene$Q44_9_ithinkmeditatingbeforesleephelpsquality, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
+sleephygiene$Q59_1_icanmaintainhealthysleephabits <- factor(sleephygiene$Q59_1_icanmaintainhealthysleephabits, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep <- factor(sleephygiene$Q59_2_icancutoutscreenuseonehourbeforesleep, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_3_icanworkoutregularly <- factor(sleephygiene$Q59_3_icanworkoutregularly, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+sleephygiene$Q59_4_icanmediatebeforebed <- factor(sleephygiene$Q59_4_icanmediatebeforebed, levels = c("Not at all confident", "Slightly confident", "Somewhat confident", "Pretty confident", "Extremely confident"))
+```
 
+
+```{r Table 1}
 tab1 <- tableby(~ Q3_role + 
                   Q4_gender +
                   Q5_age +
