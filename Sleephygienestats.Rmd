@@ -419,7 +419,8 @@ ggplot(sleephygiene) +
   coord_flip() + 
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Role")
+  labs(title = "Role") +
+  xlab("")
 ```
 
 **Fig 2**
@@ -429,7 +430,8 @@ ggplot(student) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("What is your current program at Bloomberg?")
+  labs(title = "What is your current program at Bloomberg?") +
+  xlab("")
 ```
 
 **Fig 3**
@@ -439,7 +441,8 @@ ggplot(student) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("What gender do you identify as?")
+  labs(title = "What gender do you identify as?") +
+  xlab("")
 ```
 
 **Fig 4**
@@ -449,7 +452,8 @@ ggplot(student) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Are you currently employed outside of your education program?")
+  labs(title = "Are you currently employed outside of your education program?") +
+  xlab("")
 ```
 
 **Fig 5**
@@ -459,7 +463,8 @@ ggplot(employed) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Do you work from home?")
+  labs(title = "Do you work from home?") +
+  xlab("")
 ```
 
 **Fig 6**
@@ -469,7 +474,8 @@ ggplot(notworkfromhome) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Do you work day or night shifts?")
+  labs(title = "Do you work day or night shifts?") +
+  xlab("")
 ```
 
 **Fig 7**
@@ -479,7 +485,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Are there children living in your household?")
+  labs(title = "Are there children living in your household?") +
+  xlab("")
 ```
 
 **Fig 8**
@@ -489,7 +496,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Have you ever been diagnosed with any of the following sleep disorders?")
+  labs(title = "Have you ever been diagnosed with any of the following sleep disorders?") +
+  xlab("")
 ```
 
 **Fig 9**
@@ -499,7 +507,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("How often do you feel sleepy during the day?")
+  labs(title = "How often do you feel sleepy during the day?") +
+  xlab("")
 ```
 
 **Fig 10**
@@ -509,7 +518,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Do you have a consistent time you wake up on weekdays?")
+  labs(title = "Do you have a consistent time you wake up on weekdays?") +
+  xlab("")
 ```
 
 **Fig 11**
@@ -519,7 +529,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Do you have a consistent bedtime on weekdays?")
+  labs(title = "Do you have a consistent bedtime on weekdays?") +
+  xlab("")
 ```
 
 **Fig 12**
@@ -529,7 +540,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Has your sleep quality changed due to the COVID-19 pandemic?")
+  labs(title = "Has your sleep quality changed due to the COVID-19 pandemic?") +
+  xlab("")
 ```
 
 **Fig 13**
@@ -539,7 +551,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("My bedtime routine includes")
+  labs(title = "My bedtime routine includes") +
+  xlab("")
 ```
 
 **Fig 14**
@@ -549,7 +562,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("How stressed do you currently feel about school?")
+  labs(title = "How stressed do you currently feel about school?") +
+  xlab("")
 ```
 
 **Fig 15**
@@ -559,7 +573,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("When you can't sleep do you feel")
+  labs(title = "When you can't sleep do you feel") +
+  xlab("")
 ```
 
 **Fig 16**
@@ -569,7 +584,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("How often do you practice mindfulness techniques? (i.e. breathing exercises, meditation, etc.,")
+  labs(title = "How often do you practice mindfulness techniques? (i.e. breathing exercises, meditation, etc.,") +
+  xlab("")
 ```
 
 **Fig 17**
@@ -579,7 +595,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Which of the following behaviors do you participate in? Check all that apply. ")
+  labs(title = "Which of the following behaviors do you participate in? Check all that apply. ") +
+  xlab("")
 ```
 
 **Fig 18**
@@ -589,63 +606,72 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("The things I do in the last hour before bed affect the quality of my sleep.")
+  labs(title = "The things I do in the last hour before bed affect the quality of my sleep.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_2_gettingagoodnightssleepisimportantome), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Getting a good night's sleep is important to me.")
+  labs(title = "Getting a good night's sleep is important to me.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_3_mostofmyfriendshaveahealthysleeproutine), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Most of my friends have a healthy sleep routine.")
+  labs(title = "Most of my friends have a healthy sleep routine.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_4_lackofsleepaffectsmyacademicperformance), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Lack of sleep affects my academic performance.")
+  labs(title = "Lack of sleep affects my academic performance.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_5_havingaregularsleeproutineimprovesmentalclariy), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Having a regular sleep routine improves mental clarity/sharpness.")
+  labs(title = "Having a regular sleep routine improves mental clarity/sharpness.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_6_ifeelpositiveaboutthequalityofmysleep), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I feel positive about the quality of my sleep.")
+  labs(title = "I feel positive about the quality of my sleep.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I think cutting out screen use 1 hour before bed leads to better sleep.")
+  labs(title = "I think cutting out screen use 1 hour before bed leads to better sleep.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_8_ithinkingworkingoutregularlyleadstobettersleep), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I think working out regularly leads to better sleep.")
+  labs(title = "I think working out regularly leads to better sleep.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q44_9_ithinkmeditatingbeforesleephelpsquality), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I think meditating before bed helps sleep quality.")
+  labs(title = "I think meditating before bed helps sleep quality.") +
+  xlab("")
 ```
 
 **Fig 19**
@@ -655,28 +681,32 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can maintain healthy sleep habits.")
+  labs(title = "I can maintain healthy sleep habits.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can cut out screen use 1 hour before bed.")
+  labs(title = "I can cut out screen use 1 hour before bed.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_3_icanworkoutregularly), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can work out regularly.")
+  labs(title = "I can work out regularly.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_4_icanmediatebeforebed), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can meditate before bed.")
+  labs(title = "I can meditate before bed.") +
+  xlab("")
 ```
 
 **Fig 20**
@@ -686,49 +716,56 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Energy for daily activities")
+  labs(title = "Energy for daily activities") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_2_attractivness), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Attractiveness (to self & others)")
+  labs(title = "Attractiveness (to self & others)") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_3_productivity), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Productivity at work/school")
+  labs(title = "Productivity at work/school") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_4_accomplishmentofotherdailygoals), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Accomplishment of other daily goals (e.g. exercise, cooking, paying bills, etc)")
+  labs(title = "Accomplishment of other daily goals (e.g. exercise, cooking, paying bills, etc)") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_5_mentalandemotionalwellbeing), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Mental and emotional wellbeing")
+  labs(title = "Mental and emotional wellbeing") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_6_fosteringmaintaingrelationships), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Fostering/maintaining relationships")
+  labs(title = "Fostering/maintaining relationships") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q50_7_caringforchildren), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Caring for children")
+  labs(title = "Caring for children") +
+  xlab("")
 ```
 **Fig 21**
 ```{r Fig 21}
@@ -737,28 +774,32 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can maintain healthy sleep habits.")
+  labs(title = "I can maintain healthy sleep habits.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can cut out screen use 1 hour before bed.")
+  labs(title = "I can cut out screen use 1 hour before bed.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_3_icanworkoutregularly), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can work out regularly.")
+  labs(title = "I can work out regularly.") +
+  xlab("")
 
 ggplot(sleephygiene) + 
   geom_bar(aes(x=Q59_4_icanmediatebeforebed), fill="navyblue") +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("I can meditate before bed.")
+  labs(title = "I can meditate before bed.") +
+  xlab("")
 ```
 
 **Fig 22**
@@ -768,7 +809,8 @@ ggplot(sleephygiene) +
   coord_flip() +
   theme_test() +
   theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
-  xlab("Where have you seen or received information about sleep quality or sleep hygiene? Check all that apply. ")
+  labs(title = "Where have you seen or received information about sleep quality or sleep hygiene? Check all that apply. ") +
+  xlab("")
 ```
 
 
