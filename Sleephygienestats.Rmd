@@ -1,0 +1,740 @@
+---
+title: "Sleep hygiene Survey 3/11/2021"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 12, fig.height = 12, results="asis")
+```
+
+```{r Load up packages to use}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(arsenal)
+library(data.table)
+library(expss)
+```
+
+```{r Read in data}
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 11, 2021_08.37.csv")
+
+sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
+
+#Filter to include only responses beyond this time
+sleephygiene <- sleephygiene %>% filter(StartDate >= "2021-03-09 18:00:00")
+
+#Select out the variables we need
+sleephygiene <- sleephygiene %>% select(Progress, `Duration (in seconds)`, Finished, LocationLatitude, LocationLongitude, DistributionChannel, UserLanguage, Q1, Q2, Q3, Q2_5_TEXT, Q4, Q5, Q6, Q37, Q38, Q39, Q7, Q8, Q8_3_TEXT, Q10, Q11, Q9, Q13, Q13, Q14_10, Q14_11, Q15, Q16_4, Q16_5, Q49, Q42, Q42_10_TEXT, Q19, Q17_NPS_GROUP, Q17, Q36, Q36_6_TEXT, Q18, Q20, Q9, Q13, Q14_10, Q14_11, Q15, Q16_4, Q16_5, Q49, Q42, Q42_10_TEXT, Q19, Q12_1, Q17_NPS_GROUP, Q17, Q36, Q36_6_TEXT, Q18, Q20, Q44_1, Q44_2, Q44_3, Q44_4, Q44_5, Q44_6, Q44_7, Q44_8, Q44_9, Q59_1, Q59_2, Q59_2, Q59_3, Q59_4, Q37_1, Q33, Q50_1, Q50_2, Q50_3, Q50_4, Q50_5, Q50_6, Q50_7, Q53_1, Q53_2, Q53_3, Q53_4, Q53_5, Q48, Q48_5_TEXT, Q52, `Q5 - Topics`, `Q5 - Parent Topics`)
+
+sleephygiene <- rowid_to_column(sleephygiene, "ID")
+```
+
+```{r Times}
+#Variable 14
+sleephygiene$Q14_10_new_hours <- sub(":.*", "", sleephygiene$Q14_10)
+sleephygiene$Q14_10_new_hours <- ifelse(nchar(sleephygiene$Q14_10_new_hours)==3, (str_extract(sleephygiene$Q14_10_new_hours, "^\\d{1}")), sleephygiene$Q14_10_new_hours)
+sleephygiene$Q14_10_new_hours <- ifelse(nchar(sleephygiene$Q14_10_new_hours)==4, (str_extract(sleephygiene$Q14_10_new_hours, "^\\d{2}")), sleephygiene$Q14_10_new_hours)
+sleephygiene$Q14_10_new_minutes <- str_extract(sleephygiene$Q14_10, "(?<=:)[0-9]*")
+sleephygiene$Q14_10_new_minutes <- ifelse(is.na(sleephygiene$Q14_10_new_minutes) & !is.na(sleephygiene$Q14_10_new_hours), "00", sleephygiene$Q14_10_new_minutes)
+sleephygiene$Q14_10_new_hours <- as.numeric(sleephygiene$Q14_10_new_hours)
+sleephygiene$Q14_10_new_minutes <- ifelse(grepl("[0-9]+", sleephygiene$Q14_11), sleephygiene$Q14_11, sleephygiene$Q14_10_new_minutes) 
+sleephygiene$Q14_10_new_hours <- ifelse(grepl("[pP][mM]", sleephygiene$Q14_11), sleephygiene$Q14_10_new_hours+12, sleephygiene$Q14_10_new_hours)
+sleephygiene$Q14_10_new_hours <- as.character(sleephygiene$Q14_10_new_hours)
+
+#Variable 16
+#Put in a semicolon
+sleephygiene$Q16_4_new_hours <- sub(":.*", "", sleephygiene$Q16_4)
+#If the length of the string is 3 extract the first digit
+sleephygiene$Q16_4_new_hours <- ifelse(nchar(sleephygiene$Q16_4_new_hours)==3, (str_extract(sleephygiene$Q16_4_new_hours, "^\\d{1}")), sleephygiene$Q16_4_new_hours)
+#if the length of the string is 4 extract the second digit
+sleephygiene$Q16_4_new_hours <- ifelse(nchar(sleephygiene$Q16_4_new_hours)==4, (str_extract(sleephygiene$Q16_4_new_hours, "^\\d{2}")), sleephygiene$Q16_4_new_hours)
+#if theres a number in the q16_5 variable put it in minutes
+sleephygiene$Q16_4_new_minutes <- str_extract(sleephygiene$Q16_5, "(?<=:)[0-9]*")
+#if the q16_4 minute variable has missing values replace them with 00
+sleephygiene$Q16_4_new_minutes <- ifelse(is.na(sleephygiene$Q16_4_new_minutes) & !is.na(sleephygiene$Q16_4_new_hours), "00", sleephygiene$Q16_4_new_minutes)
+#If there is a number in q16_5 put that in minutes
+sleephygiene$Q16_4_new_minutes <- ifelse(grepl("[0-9]+", sleephygiene$Q16_5), sleephygiene$Q16_5, sleephygiene$Q16_4_new_minutes) 
+#if there is a ncar length of 5 in q16_4 (suggesting a format like 16:00) take the 4 and 5 digits and put that in minutes
+sleephygiene$Q16_4_new_minutes <- ifelse(nchar(sleephygiene$Q16_4)==5, substr(sleephygiene$Q16_4, 4, 5), sleephygiene$Q16_4_new_minutes)
+#make the hour variable a numeric
+sleephygiene$Q16_4_new_hours <- as.numeric(sleephygiene$Q16_4_new_hours)
+#if there is a pm add 12 hours in q16_5 to the hours
+sleephygiene$Q16_4_new_hours <- ifelse(grepl("[pP]", sleephygiene$Q16_5), sleephygiene$Q16_4_new_hours+12, sleephygiene$Q16_4_new_hours)
+#if there is a 12 in q16_4 and am has been noted also add 12 hours
+sleephygiene$Q16_4_new_hours <- ifelse((grepl("[12]", sleephygiene$Q16_4) & grepl("[aA][mM]", sleephygiene$Q16_5)), sleephygiene$Q16_4_new_hours+12, sleephygiene$Q16_4_new_hours)
+#Make the hours a character now in preparation to convert to posixct 
+sleephygiene$Q16_4_new_hours <- as.character(sleephygiene$Q16_4_new_hours)
+
+sleephygiene <- sleephygiene %>% mutate(Q16_4_new_hours = case_when(
+  Q16_4_new_hours == "24" ~ "00",
+  Q16_4_new_hours == "13" & grepl("[aA]", Q16_5) ~ "01",
+  Q16_4_new_hours == "7" ~ "07",
+  TRUE ~ Q16_4_new_hours
+))
+
+#Create a sleeptime and wakeup variable
+sleephygiene <- sleephygiene %>% 
+  mutate(Q14_wakeuptime = 
+           case_when(!is.na(Q14_10_new_hours) ~ paste0(Q14_10_new_hours,":",Q14_10_new_minutes),
+                     TRUE ~ NA_character_)) %>%
+  mutate(Q16_sleeptime =
+           case_when(!is.na(Q16_4_new_hours) ~ paste0(Q16_4_new_hours,":",Q16_4_new_minutes),
+                     TRUE ~ NA_character_))
+
+sleephygiene$Q14_wakeuptime <- as.POSIXct(sleephygiene$Q14_wakeuptime, format="%H:%M")
+#sleephygiene$Q16_sleeptime <- as.POSIXct(sleephygiene$Q16_sleeptime, format="%H:%M")
+
+#sleephygiene %>% select(Q14_10_new_hours, Q14_10_new_minutes, Q14_11, Q14_wakeuptime, Q14_10) %>% View()
+```
+
+```{r Recoding factors}
+#General factor recoding
+sleephygiene <- sleephygiene %>% mutate(
+  Q1_consent = factor(Q1)) %>%
+  mutate(Q2_program = factor(Q2)) %>%
+  mutate(Q3_role = factor(Q3)) %>%
+  mutate(Q4_gender = factor(Q4)) %>%
+  mutate(Q5_age = as.numeric(Q5)) %>%
+  mutate(Q6_numberinhousehold = as.numeric(Q6)) %>%
+  mutate(Q37_employed = factor(Q37)) %>%
+  mutate(Q38_wfh = factor(Q38)) %>%
+  mutate(Q39_dayornight = factor(Q39)) %>%
+  mutate(Q7_children = factor(Q7)) %>%
+  mutate(Q8_diagnosis = factor(Q8)) %>%
+  mutate(Q10_workdayhoursofsleep = as.numeric(Q10)) %>%
+  mutate(Q11_weekendhoursofsleep = as.numeric(Q11)) %>%
+  mutate(Q9_howoftensleepy = factor(Q9)) %>%
+  mutate(Q13_consistentwakeup = factor(Q13)) %>%
+  mutate(Q15_consistentbedtimeonweekdays = factor(Q15)) %>%
+  mutate(Q49_sleepqualitychangecovid = factor(Q49)) %>%
+  mutate(Q18_howoftenpracticemindfullness = factor(Q18)) %>%
+  mutate(Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep = factor(Q44_1)) %>%
+  mutate(Q44_2_gettingagoodnightssleepisimportantome = factor(Q44_2)) %>%
+  mutate(Q44_3_mostofmyfriendshaveahealthysleeproutine = factor(Q44_3)) %>%
+  mutate(Q44_4_lackofsleepaffectsmyacademicperformance = factor(Q44_4)) %>%
+  mutate(Q44_5_havingaregularsleeproutineimprovesmentalclariy = factor(Q44_5)) %>%
+  mutate(Q44_6_ifeelpositiveaboutthequalityofmysleep = factor(Q44_6)) %>%
+  mutate(Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep = factor(Q44_7)) %>%
+  mutate(Q44_8_ithinkingworkingoutregularlyleadstobettersleep = factor(Q44_8)) %>%
+  mutate(Q44_9_ithinkmeditatingbeforesleephelpsquality = factor(Q44_9)) %>%
+  mutate(Q59_1_icanmaintainhealthysleephabits = factor(Q59_1)) %>%
+  mutate(Q59_2_icancutoutscreenuseonehourbeforesleep = factor(Q59_2)) %>%
+  mutate(Q59_3_icanworkoutregularly = factor(Q59_3)) %>%
+  mutate(Q59_4_icanmediatebeforebed = factor(Q59_4)) %>%
+  mutate(Q37_whatdoyouconsideragoodnightssleep = factor(Q37))
+```
+
+```{r Recoding Numerics}
+#Q19
+sleephygiene$Q19_howmanyhourssdidyouuseascreen <- str_extract(sleephygiene$Q19, '\\d+')
+
+#Q12
+sleephygiene$Q12_1_howmanynightsusescreen <- as.numeric(sleephygiene$Q12_1)
+
+#Q17
+sleephygiene$Q17_stressedaboutschool <- as.numeric(sleephygiene$Q17) 
+
+#Q33
+#Come back to this one because some are given as a range
+sleephygiene$Q33_whatisthrecommendednumbersofhoursofsleep <- str_extract(sleephygiene$Q33, '\\d+')
+sleephygiene$Q33_whatisthrecommendednumbersofhoursofsleep <- as.numeric(sleephygiene$Q33_whatisthrecommendednumbersofhoursofsleep)
+
+#Q50
+sleephygiene <- sleephygiene %>% 
+  mutate(Q50_1_energyfordailyacitivites = as.numeric(Q50_1)) %>%
+  mutate(Q50_2_attractivness = as.numeric(Q50_2)) %>%
+  mutate(Q50_3_productivity = as.numeric(Q50_3)) %>%
+  mutate(Q50_4_accomplishmentofotherdailygoals = as.numeric(Q50_4)) %>%
+  mutate(Q50_5_mentalandemotionalwellbeing = as.numeric(Q50_5)) %>%
+  mutate(Q50_6_fosteringmaintaingrelationships = as.numeric(Q50_6)) %>%
+  mutate(Q50_7_caringforchildren = as.numeric(Q50_7))
+
+#Q53
+sleephygiene <- sleephygiene %>% 
+  mutate(Q53_1_getoutsidefor10mininthemorning = as.numeric(Q53_1)) %>%
+  mutate(Q53_2_exerciseduringtheday = as.numeric(Q53_2)) %>%
+  mutate(Q53_3_doingabreathingexercisebeforesleep = as.numeric(Q53_3)) %>%
+  mutate(Q53_4_notusescreens = as.numeric(Q53_4)) %>%
+  mutate(Q53_5_listeningtoacalmingaudiobookorpodcast = as.numeric(Q53_5))
+
+```
+
+```{r Listvariables to binary}
+#Q42
+resp.split_42 <- strsplit(sleephygiene$Q42, ",")
+lev <- unique(unlist(resp.split_42))
+sleephygiene<- with(sleephygiene, data.frame(sleephygiene, t(sapply(resp.split_42, function(x) table(factor(x, levels=lev))))))
+
+sleephygiene <- sleephygiene %>%
+    mutate(bedtimeroutine = case_when(
+    Washing.my.face == 1 ~ "Washing my face",
+    Brushing.teeth == 1 ~ "Brushing teeth",
+    Showering == 1 ~ "Showering",
+    Reading == 1 ~ "Reading",
+    Journaling == 1 ~ "Journaling",
+    Meditating == 1 ~ "Meditating",
+    Watching.TV == 1 ~ "Watching TV",
+    Phone.Usage == 1 ~ "Phone usage",
+    Listening.to.Music == 1 ~ "Listening to music",
+    Other == 1 ~ "Other"))
+
+#Q36
+resp.split_36 <- strsplit(sleephygiene$Q36, ",")
+lev <- unique(unlist(resp.split_36))
+sleephygiene<- with(sleephygiene, data.frame(sleephygiene, t(sapply(resp.split_36, function(x) table(factor(x, levels=lev))))))
+
+sleephygiene <- sleephygiene %>%
+    mutate(cantsleepfeeling = case_when(
+    Guilty == 1 ~ "Guilty",
+    Angry == 1 ~ "Angry",
+    Frustrated == 1 ~ "Frustrated",
+    Sad == 1 ~ "Sad",
+    Stressed == 1 ~ "Stressed",
+    None.of.the.above == 1 ~ "None of the above",
+    Other.1 == 1 ~ "Other"))
+
+#Q20
+resp.split_20 <- strsplit(sleephygiene$Q20, ",")
+lev <- unique(unlist(resp.split_20))
+sleephygiene<- with(sleephygiene, data.frame(sleephygiene, t(sapply(resp.split_20, function(x) table(factor(x, levels=lev))))))
+
+sleephygiene <- sleephygiene %>%
+    mutate(behaviors = case_when(
+    Cigarette.Smoking == 1 ~ "Cigarette smoking",
+    Alcohol.Consumption == 1 ~ "Alcohol Consumption",
+    Exercise == 1 ~ "Exercise",
+    Social.Media.Use == 1 ~ "Social Media Use",
+    Daytime.Napping == 1 ~ "Daytime napping",
+    Drinking.Caffeinated.beverages == 1 ~ "Drinking Caffeinated beverages",
+    Using.Sleep.Aids..ex..melatonin == 1 ~ "Using Sleep Aids ex. melatonin"))
+
+#48
+resp.split_48 <- strsplit(sleephygiene$Q48, ",")
+lev <- unique(unlist(resp.split_48))
+sleephygiene<- with(sleephygiene, data.frame(sleephygiene, t(sapply(resp.split_48, function(x) table(factor(x, levels=lev))))))
+
+sleephygiene <- sleephygiene %>%
+    mutate(information = case_when(
+    Health.care.professional == 1 ~ "Health care professional",
+    Social.media == 1 ~ "Social media",
+    Other.online.source == 1 ~ "Other online source",
+    News.sources == 1 ~ "News sources",
+    Friends == 1 ~ "Friends",
+    University.wellbeing.resources..Office.of.Wellness.and.Health.Promotion == 1 ~ "University.wellbeing.resources..Office.of.Wellness.and.Health.Promotion"))
+
+```
+
+**Plots for wakeup and sleep times**
+```{r}
+ggplot(data=sleephygiene, aes(y=Q14_wakeuptime,x=ID)) + 
+  geom_point(size=4, color="darkblue") +
+  theme_test() +
+  theme(text = element_text(size=32), plot.title = element_text(hjust = 0.5)) +
+  labs(title="Wake up times of participants", x="Unique participant", y="Wake up time")
+  #+
+  #xlim(as.POSIXct(c("2021-03-10 05:00:00", "2021-03-10 12:00:00")))
+
+#Plot for sleeptime
+ggplot(data=sleephygiene, aes(y=Q16_sleeptime,x=ID)) + 
+   geom_point(size=4, color="darkred") +
+  theme_test() +
+  theme(text = element_text(size=32), plot.title = element_text(hjust = 0.5)) +
+  labs(title="Sleep times of participants", x="Unique participant", y="Sleep time")
+```
+
+```{r Table 1}
+#Tab 1
+library(expss)
+sleephygiene = apply_labels(sleephygiene,
+                      Q3_role = "What is your role at Bloomberg",
+                      Q4_gender = "What gender do you identify as?",
+                      Q5_age = "How old are you?",
+                      Q6_numberinhousehold = "How many people live in your household, including yourself?",
+                      Q37_employed = "Are you currently employed outside of your education program?",
+                      Q8_diagnosis = "Have you ever been diagnosed with any of the following sleep disorders?",
+                      Q10_workdayhoursofsleep = "During the past 5 workdays, how many hours of sleep did you get per night on average?",
+                      Q11_weekendhoursofsleep = "During the past weekend, how many hours of sleep did you get per night on average? ",
+                      Q13_consistentwakeup = "Do you have a consistent time you wake up on weekdays?",
+                      Q9_howoftensleepy = "How often do you feel sleepy during the day?",
+                      Q2_program = "What is your current program at Bloomberg?",
+                      Q38_wfh = "Do you work from home?",
+                      Q39_dayornight = "Do you work day or night shifts?",
+                      Q49_sleepqualitychangecovid = "Has your sleep quality changed due to the COVID-19 pandemic? ",
+                      bedtimeroutine = "My bedtime routine includes:",
+                      Q19_howmanyhourssdidyouuseascreen = "How many hours per day do you typically use a screen? (i.e. cell phone, tablet, computer, television)",
+                      Q12_1_howmanynightsusescreen = "In the past week, how many nights did you use screens (i.e. cell phone, tablet, computer, television) within 1 hour before bed?",
+                      Q17_stressedaboutschool = "How stressed do you currently feel about school?",
+                      cantsleepfeeling = "When you can't sleep do you feel___",
+                      Q18_howoftenpracticemindfullness = "How often do you practice mindfulness techniques? (i.e. breathing exercises, meditation, etc.,)",
+                      behaviors = "Which of the following behaviors do you participate in? ",
+                      Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep = "The things I do in the last hour before bed affect the quality of my sleep.",
+                      Q44_2_gettingagoodnightssleepisimportantome = "Getting a good night's sleep is important to me.",
+                      Q44_3_mostofmyfriendshaveahealthysleeproutine = "Most of my friends have a healthy sleep routine.",
+                      Q44_4_lackofsleepaffectsmyacademicperformance = "Lack of sleep affects my academic performance.",
+                      Q44_5_havingaregularsleeproutineimprovesmentalclariy = "Having a regular sleep routine improves mental clarity/sharpness.",
+                      Q44_6_ifeelpositiveaboutthequalityofmysleep = "I feel positive about the quality of my sleep.",
+                      Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep = "I think cutting out screen use 1 hour before bed leads to better sleep.",
+                      Q44_8_ithinkingworkingoutregularlyleadstobettersleep = "I think working out regularly leads to better sleep.",
+                      Q44_9_ithinkmeditatingbeforesleephelpsquality = "I think meditating before bed helps sleep quality.", 
+                      Q59_1_icanmaintainhealthysleephabits = "I can maintain healthy sleep habits.",
+                      Q59_2_icancutoutscreenuseonehourbeforesleep = "I can cut out screen use 1 hour before bed.",
+                      Q59_3_icanworkoutregularly = "I can work out regularly.",
+                      Q59_4_icanmediatebeforebed = "I can meditate before bed.",
+                      Q37_whatdoyouconsideragoodnightssleep = "What do you consider a good night's sleep?",
+                      Q50_1_energyfordailyacitivites = "Energy for daily activities", 
+                      Q50_2_attractivness = "Attractiveness (to self & others)",
+                      Q50_3_productivity = "Productivity at work/school",
+                      Q50_4_accomplishmentofotherdailygoals = "Accomplishment of other daily goals (e.g. exercise, cooking, paying bills, etc)",
+                      Q50_5_mentalandemotionalwellbeing = "Mental and emotional wellbeing",
+                      Q50_6_fosteringmaintaingrelationships = "Fostering/maintaining relationships",
+                      Q50_7_caringforchildren = "Caring for children",
+                      Q53_1_getoutsidefor10mininthemorning = "Get outside for 10 minutes in the morning." ,
+                      Q53_2_exerciseduringtheday = "Exercise during the day.",
+                      Q53_3_doingabreathingexercisebeforesleep = "Do a breathing exercise before you sleep.",
+                      Q53_4_notusescreens = "Not use screens (i.e. cell phone, tablet, computer, television) for 1 hour before bed",
+                      Q53_5_listeningtoacalmingaudiobookorpodcast = "Listen to a calming audiobook or podcast before bed",
+                      information = "Where have you seen or received information about sleep quality or sleep hygiene?"
+)
+
+
+tab1 <- tableby(~ Q3_role + 
+                  Q4_gender +
+                  Q5_age +
+                  Q6_numberinhousehold +
+                  Q37_employed +
+                  Q8_diagnosis +
+                  Q10_workdayhoursofsleep +
+                  Q11_weekendhoursofsleep +
+                  Q9_howoftensleepy,
+                data=sleephygiene, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If student
+student <- sleephygiene %>% filter(Q3_role != "Faculty/Staff Member")
+
+tab1 <- tableby(~ Q2_program,
+                data=student, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If employed 
+employed <- sleephygiene %>% filter(Q37_employed == "Yes")
+
+tab1 <- tableby(~ Q38_wfh,
+                data=employed, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If wfh
+notworkfromhome <- sleephygiene %>% filter(Q37_employed == "Yes" & Q38_wfh == "No")
+
+tab1 <- tableby(~ Q39_dayornight,
+                data=notworkfromhome, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+```
+
+```{r Questions about sleep}
+tab1 <- tableby(~ Q13_consistentwakeup + 
+                  Q15_consistentbedtimeonweekdays +
+                  Q49_sleepqualitychangecovid +
+                  bedtimeroutine +
+                  Q19_howmanyhourssdidyouuseascreen +
+                  Q12_1_howmanynightsusescreen +
+                  Q17_stressedaboutschool +
+                  cantsleepfeeling +
+                  Q18_howoftenpracticemindfullness +
+                  behaviors +
+                  Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep +
+                  Q44_2_gettingagoodnightssleepisimportantome +
+                  Q44_3_mostofmyfriendshaveahealthysleeproutine +
+                  Q44_4_lackofsleepaffectsmyacademicperformance +
+                  Q44_5_havingaregularsleeproutineimprovesmentalclariy +
+                  Q44_6_ifeelpositiveaboutthequalityofmysleep +
+                  Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep +
+                  Q44_8_ithinkingworkingoutregularlyleadstobettersleep +
+                  Q44_9_ithinkmeditatingbeforesleephelpsquality +
+                  Q59_1_icanmaintainhealthysleephabits +
+                  Q59_2_icancutoutscreenuseonehourbeforesleep +
+                  Q59_3_icanworkoutregularly +
+                  Q59_4_icanmediatebeforebed +
+                  Q37_whatdoyouconsideragoodnightssleep +
+                  Q50_1_energyfordailyacitivites +
+                  Q50_2_attractivness +
+                  Q50_3_productivity +
+                  Q50_4_accomplishmentofotherdailygoals +
+                  Q50_5_mentalandemotionalwellbeing +
+                  Q50_6_fosteringmaintaingrelationships +
+                  Q50_7_caringforchildren +
+                  Q53_1_getoutsidefor10mininthemorning +
+                  Q53_2_exerciseduringtheday +
+                  Q53_3_doingabreathingexercisebeforesleep +
+                  Q53_4_notusescreens +
+                  Q53_5_listeningtoacalmingaudiobookorpodcast +
+                  information,
+                data=sleephygiene, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 2. Sleep questions', pfootnote=TRUE, digits = 2)
+
+attach(sleephygiene)
+```
+
+**Fig 1**
+```{r Fig 1}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q3_role), fill="navyblue") +
+  coord_flip() + 
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Role")
+```
+
+**Fig 2**
+```{r Fig 2}
+ggplot(student) + 
+  geom_bar(aes(x=Q2_program), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("What is your current program at Bloomberg?")
+```
+
+**Fig 3**
+```{r Fig 3}
+ggplot(student) + 
+  geom_bar(aes(x=Q4_gender), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("What gender do you identify as?")
+```
+
+**Fig 4**
+```{r Fig 4}
+ggplot(student) + 
+  geom_bar(aes(x=Q37_employed), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Are you currently employed outside of your education program?")
+```
+
+**Fig 5**
+```{r Fig 5}
+ggplot(employed) + 
+  geom_bar(aes(x=Q38_wfh), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Do you work from home?")
+```
+
+**Fig 6**
+```{r Fig 6}
+ggplot(notworkfromhome) + 
+  geom_bar(aes(x=Q39_dayornight), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Do you work day or night shifts?")
+```
+
+**Fig 7**
+```{r Fig 7}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q7_children), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Are there children living in your household?")
+```
+
+**Fig 8**
+```{r Fig 8}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q8_diagnosis), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Have you ever been diagnosed with any of the following sleep disorders?")
+```
+
+**Fig 9**
+```{r Fig 9}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q9_howoftensleepy), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("How often do you feel sleepy during the day?")
+```
+
+**Fig 10**
+```{r Fig 10}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q13_consistentwakeup), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Do you have a consistent time you wake up on weekdays?")
+```
+
+**Fig 11**
+```{r Fig 11}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q15_consistentbedtimeonweekdays), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Do you have a consistent bedtime on weekdays?")
+```
+
+**Fig 12**
+```{r Fig 12}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q49_sleepqualitychangecovid), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Has your sleep quality changed due to the COVID-19 pandemic?")
+```
+
+**Fig 13**
+```{r Fig 13}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=bedtimeroutine), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("My bedtime routine includes")
+```
+
+**Fig 14**
+```{r Fig 14}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q17_stressedaboutschool), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("How stressed do you currently feel about school?")
+```
+
+**Fig 15**
+```{r Fig 15}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=cantsleepfeeling), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("When you can't sleep do you feel")
+```
+
+**Fig 16**
+```{r Fig 16}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q18_howoftenpracticemindfullness), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("How often do you practice mindfulness techniques? (i.e. breathing exercises, meditation, etc.,")
+```
+
+**Fig 17**
+```{r Fig 17} 
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=behaviors), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Which of the following behaviors do you participate in? Check all that apply. ")
+```
+
+**Fig 18**
+```{r Fig 18}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("The things I do in the last hour before bed affect the quality of my sleep.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_2_gettingagoodnightssleepisimportantome), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Getting a good night's sleep is important to me.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_3_mostofmyfriendshaveahealthysleeproutine), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Most of my friends have a healthy sleep routine.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_4_lackofsleepaffectsmyacademicperformance), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Lack of sleep affects my academic performance.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_5_havingaregularsleeproutineimprovesmentalclariy), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Having a regular sleep routine improves mental clarity/sharpness.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_6_ifeelpositiveaboutthequalityofmysleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I feel positive about the quality of my sleep.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I think cutting out screen use 1 hour before bed leads to better sleep.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_8_ithinkingworkingoutregularlyleadstobettersleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I think working out regularly leads to better sleep.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q44_9_ithinkmeditatingbeforesleephelpsquality), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I think meditating before bed helps sleep quality.")
+```
+
+**Fig 19**
+```{r Fig 19}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_1_icanmaintainhealthysleephabits), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I can maintain healthy sleep habits.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I can cut out screen use 1 hour before bed.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_3_icanworkoutregularly), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I can work out regularly.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_4_icanmediatebeforebed), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("I can meditate before bed.")
+```
+
+**Fig 20**
+```{r Fig 20}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_1_energyfordailyacitivites), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Energy for daily activities")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_2_attractivness), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Attractiveness (to self & others)")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_3_productivity), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("Productivity at work/school")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_4_accomplishmentofotherdailygoals), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("Accomplishment of other daily goals (e.g. exercise, cooking, paying bills, etc)")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_5_mentalandemotionalwellbeing), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("Mental and emotional wellbeing")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_6_fosteringmaintaingrelationships), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("Fostering/maintaining relationships")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q50_7_caringforchildren), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("Caring for children")
+```
+**Fig 21**
+```{r Fig 21}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_1_icanmaintainhealthysleephabits), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("I can maintain healthy sleep habits.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("I can cut out screen use 1 hour before bed.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_3_icanworkoutregularly), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("I can work out regularly.")
+
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=Q59_4_icanmediatebeforebed), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  xlab("I can meditate before bed.")
+```
+
+**Fig 22**
+```{r Fig 22}
+ggplot(sleephygiene) + 
+  geom_bar(aes(x=information), fill="navyblue") +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32)) +
+  xlab("Where have you seen or received information about sleep quality or sleep hygiene? Check all that apply. ")
+```
+
+
