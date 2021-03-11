@@ -128,7 +128,7 @@ sleephygiene <- sleephygiene %>% mutate(
   mutate(Q59_2_icancutoutscreenuseonehourbeforesleep = factor(Q59_2)) %>%
   mutate(Q59_3_icanworkoutregularly = factor(Q59_3)) %>%
   mutate(Q59_4_icanmediatebeforebed = factor(Q59_4)) %>%
-  mutate(Q37_whatdoyouconsideragoodnightssleep = factor(Q37))
+  mutate(Q37_whatdoyouconsideragoodnightssleep = factor(Q37_1))
 ```
 
 ```{r Recoding Numerics}
