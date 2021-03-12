@@ -36,7 +36,7 @@ library(expss)
 ```
 
 ```{r Read in data}
-sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 11, 2021_17.13.csv")
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 12, 2021_15.56.csv")
 
 sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
 
