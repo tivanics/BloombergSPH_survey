@@ -20,15 +20,28 @@ library(tidyverse)
 library(arsenal)
 library(data.table)
 library(expss)
+
+
+#ideas, stratify by what do you consider a good nights sleep
+#additive index according to behaviors 
+#regression models for the outcome.
+
+#Positive quality of sleep - 
+#Consistent wake up 
+#Greater than 7 hrs to 9 hrs --> stratify #for sure USE THIS AND ONE OR THE OTHER
+  #Agreement questions Q44
+  #Current bedtime routines
+  #Current lifestyle habits
+  #Employment and children
 ```
 
 ```{r Read in data}
-sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 11, 2021_13.57.csv")
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 11, 2021_17.13.csv")
 
 sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
 
 #Filter to include only responses beyond this time
-sleephygiene <- sleephygiene %>% filter(StartDate >= "2021-03-09 18:00:00")
+sleephygiene <- sleephygiene %>% filter(StartDate >= "2021-03-09 14:00:00")
 
 #Select out the variables we need
 sleephygiene <- sleephygiene %>% select(Progress, `Duration (in seconds)`, Finished, LocationLatitude, LocationLongitude, DistributionChannel, UserLanguage, Q1, Q2, Q3, Q2_5_TEXT, Q4, Q5, Q6, Q37, Q38, Q39, Q7, Q8, Q8_3_TEXT, Q10, Q11, Q9, Q13, Q13, Q14_10, Q14_11, Q15, Q16_4, Q16_5, Q49, Q42, Q42_10_TEXT, Q19, Q17_NPS_GROUP, Q17, Q36, Q36_6_TEXT, Q18, Q20, Q9, Q13, Q14_10, Q14_11, Q15, Q16_4, Q16_5, Q49, Q42, Q42_10_TEXT, Q19, Q12_1, Q17_NPS_GROUP, Q17, Q36, Q36_6_TEXT, Q18, Q20, Q44_1, Q44_2, Q44_3, Q44_4, Q44_5, Q44_6, Q44_7, Q44_8, Q44_9, Q59_1, Q59_2, Q59_2, Q59_3, Q59_4, Q37_1, Q33, Q50_1, Q50_2, Q50_3, Q50_4, Q50_5, Q50_6, Q50_7, Q53_1, Q53_2, Q53_3, Q53_4, Q53_5, Q48, Q48_5_TEXT, Q52, `Q5 - Topics`, `Q5 - Parent Topics`)
