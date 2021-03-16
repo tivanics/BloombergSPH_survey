@@ -20,19 +20,6 @@ library(tidyverse)
 library(arsenal)
 library(data.table)
 library(expss)
-
-
-#ideas, stratify by what do you consider a good nights sleep
-#additive index according to behaviors 
-#regression models for the outcome.
-
-#Positive quality of sleep - 
-#Consistent wake up 
-#Greater than 7 hrs to 9 hrs --> stratify #for sure USE THIS AND ONE OR THE OTHER
-  #Agreement questions Q44
-  #Current bedtime routines
-  #Current lifestyle habits
-  #Employment and children
 ```
 
 ```{r Read in data}
@@ -267,10 +254,10 @@ ggplotly(sleeptime)
 
 ```{r Applying labels}
 #Tab 1
-sleephygiene$Q9_howoftensleepy <- factor(sleephygiene$Q9_howoftensleepy, levels = c("Rarely", "Sometimes", "Very often", "Always"))
-sleephygiene$Q13_consistentwakeup <- factor(sleephygiene$Q13_consistentwakeup, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q9_howoftensleepy <- factor(sleephygiene$Q9_howoftensleepy, levels = c("Never", "Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q13_consistentwakeup <- factor(sleephygiene$Q13_consistentwakeup, levels = c("No", "Sometimes", "Yes"))
 sleephygiene$Q19_howmanyhourssdidyouuseascreen <- factor(sleephygiene$Q19_howmanyhourssdidyouuseascreen, levels = c("0", "1" , "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"))
-sleephygiene$Q18_howoftenpracticemindfullness <- factor(sleephygiene$Q18_howoftenpracticemindfullness, levels = c("Rarely", "Sometimes", "Very often", "Always"))
+sleephygiene$Q18_howoftenpracticemindfullness <- factor(sleephygiene$Q18_howoftenpracticemindfullness, levels = c("Never", "Rarely", "Sometimes", "Very often", "Always"))
 sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep <- factor(sleephygiene$Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
 sleephygiene$Q44_2_gettingagoodnightssleepisimportantome <- factor(sleephygiene$Q44_2_gettingagoodnightssleepisimportantome, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
 sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine <- factor(sleephygiene$Q44_3_mostofmyfriendshaveahealthysleeproutine, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
@@ -825,5 +812,10 @@ ggplot(sleephygiene) +
   labs(title = "Where have you seen or received information about sleep quality or sleep hygiene? Check all that apply. ") +
   xlab("")
 ```
+
+```{r}
+saveRDS(sleephygiene, file="foranalysis.rds")
+```
+
 
 

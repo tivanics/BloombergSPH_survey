@@ -1,0 +1,42 @@
+---
+title: "Sleep hygiene Analysis 3/16/2021"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 20, fig.height = 20, results="asis")
+```
+
+```{r Load up packages to use}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(arsenal)
+library(data.table)
+library(expss)
+
+#ideas, stratify by what do you consider a good nights sleep
+#additive index according to behaviors 
+#regression models for the outcome.
+
+#Positive quality of sleep - 
+#Consistent wake up 
+#Greater than 7 hrs to 9 hrs --> stratify #for sure USE THIS AND ONE OR THE OTHER
+  #Agreement questions Q44
+  #Current bedtime routines
+  #Current lifestyle habits
+  #Employment and children
+```
+
+```{r rds file read in}
+analysisdata <- readRDS("foranalysis.rds")
+```
+
+```{r}
+
+```
+
