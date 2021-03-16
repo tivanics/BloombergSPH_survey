@@ -18,6 +18,7 @@ library(tidyverse)
 library(arsenal)
 library(data.table)
 library(expss)
+library(ggsci)
 
 #ideas, stratify by what do you consider a good nights sleep
 #additive index according to behaviors 
@@ -36,7 +37,620 @@ library(expss)
 analysisdata <- readRDS("foranalysis.rds")
 ```
 
-```{r}
+```{r Coding}
+analysisdata <- analysisdata %>% mutate(
+  compositeoutcomegoodsleep = case_when(
+    Q10_workdayhoursofsleep >= 7.0 & Q10_workdayhoursofsleep <= 9.0 ~ 1,
+    Q10_workdayhoursofsleep < 7.0 | Q10_workdayhoursofsleep > 9.0 ~ 0,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat agree" & Q13_consistentwakeup == "Yes" ~ 1,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly agree" & Q13_consistentwakeup == "Yes"~ 1,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Neither agree nor disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0
+  )
+) %>% mutate(compositeoutcomegoodsleep = factor(compositeoutcomegoodsleep, label = c("Poor sleep", "Good sleep"))) %>%
+  filter(!is.na(compositeoutcomegoodsleep))
+```
 
+```{r Table 1}
+tab1 <- tableby(compositeoutcomegoodsleep~ Q3_role + 
+                  Q4_gender +
+                  Q5_age +
+                  Q6_numberinhousehold +
+                  Q37_employed +
+                  Q8_diagnosis +
+                  Q10_workdayhoursofsleep +
+                  Q11_weekendhoursofsleep +
+                  Q9_howoftensleepy,
+                data=analysisdata, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If student
+student <- analysisdata %>% filter(Q3_role != "Faculty/Staff Member")
+
+tab1 <- tableby(compositeoutcomegoodsleep~ Q2_program,
+                data=student, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If employed 
+employed <- analysisdata %>% filter(Q37_employed == "Yes")
+
+tab1 <- tableby(compositeoutcomegoodsleep ~ Q38_wfh,
+                data=employed, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+#If wfh
+notworkfromhome <- analysisdata %>% filter(Q37_employed == "Yes" & Q38_wfh == "No")
+
+tab1 <- tableby(compositeoutcomegoodsleep ~ Q39_dayornight,
+                data=notworkfromhome, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+```
+
+```{r Questions about sleep}
+tab1 <- tableby(compositeoutcomegoodsleep~  
+                  Q15_consistentbedtimeonweekdays +
+                  Q49_sleepqualitychangecovid +
+                  bedtimeroutine +
+                  Q19_howmanyhourssdidyouuseascreen +
+                  as.numeric(Q19_howmanyhourssdidyouuseascreen) +
+                  Q12_1_howmanynightsusescreen +
+                  Q17_stressedaboutschool +
+                  cantsleepfeeling +
+                  Q18_howoftenpracticemindfullness +
+                  behaviors +
+                  Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep +
+                  Q44_2_gettingagoodnightssleepisimportantome +
+                  Q44_3_mostofmyfriendshaveahealthysleeproutine +
+                  Q44_4_lackofsleepaffectsmyacademicperformance +
+                  Q44_5_havingaregularsleeproutineimprovesmentalclariy +
+                  Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep +
+                  Q44_8_ithinkingworkingoutregularlyleadstobettersleep +
+                  Q44_9_ithinkmeditatingbeforesleephelpsquality +
+                  Q59_1_icanmaintainhealthysleephabits +
+                  Q59_2_icancutoutscreenuseonehourbeforesleep +
+                  Q59_3_icanworkoutregularly +
+                  Q59_4_icanmediatebeforebed +
+                  Q37_whatdoyouconsideragoodnightssleep +
+                  Q50_1_energyfordailyacitivites +
+                  Q50_2_attractivness +
+                  Q50_3_productivity +
+                  Q50_4_accomplishmentofotherdailygoals +
+                  Q50_5_mentalandemotionalwellbeing +
+                  Q50_6_fosteringmaintaingrelationships +
+                  Q50_7_caringforchildren +
+                  Q53_1_getoutsidefor10mininthemorning +
+                  Q53_2_exerciseduringtheday +
+                  Q53_3_doingabreathingexercisebeforesleep +
+                  Q53_4_notusescreens +
+                  Q53_5_listeningtoacalmingaudiobookorpodcast +
+                  information,
+                data=analysisdata, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 2. Sleep questions', pfootnote=TRUE, digits = 2)
+```
+
+**Fig 1**
+```{r Fig 1}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q3_role, fill=compositeoutcomegoodsleep)) +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "Role") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+**Fig 2**
+```{r Fig 2}
+g<- ggplot(student) + 
+  geom_bar(aes(x=Q2_program, fill=compositeoutcomegoodsleep)) +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "What is your current program at Bloomberg?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 3**
+```{r Fig 3}
+g<- ggplot(student) + 
+  geom_bar(aes(x=Q4_gender, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "What gender do you identify as?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 4**
+```{r Fig 4}
+g<- ggplot(student) + 
+  geom_bar(aes(x=Q37_employed, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "Are you currently employed outside of your education program?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 5**
+```{r Fig 5}
+g<- ggplot(employed) + 
+  geom_bar(aes(x=Q38_wfh, fill=compositeoutcomegoodsleep)) +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "Do you work from home?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 6**
+```{r Fig 6}
+g<- ggplot(notworkfromhome) + 
+  geom_bar(aes(x=Q39_dayornight, fill=compositeoutcomegoodsleep)) +
+  coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "Do you work day or night shifts?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 7**
+```{r Fig 7}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q7_children, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=15)) +
+  labs(title = "Are there children living in your household?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 8**
+```{r Fig 8}
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q8_diagnosis, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=20), axis.text.x = element_text(size=32)) +
+  labs(title = "Have you ever been diagnosed with any of the following sleep disorders?") +
+  xlab("") + 
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 9**
+```{r Fig 9}
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q9_howoftensleepy, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "How often do you feel sleepy during the day?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 10**
+```{r Fig 10}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q13_consistentwakeup, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=32)) +
+  labs(title = "Do you have a consistent time you wake up on weekdays?") +
+  xlab("") + 
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 11**
+```{r Fig 11}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q15_consistentbedtimeonweekdays, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Do you have a consistent bedtime on weekdays?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 12**
+```{r Fig 12}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q49_sleepqualitychangecovid, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Has your sleep quality changed due to the COVID-19 pandemic?") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 13**
+```{r Fig 13}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=bedtimeroutine, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "My bedtime routine includes") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 14**
+```{r Fig 14}
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q17_stressedaboutschool, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "How stressed do you currently feel about school?") +
+  xlab("") + 
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 15**
+```{r Fig 15}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=cantsleepfeeling, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "When you can't sleep do you feel") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 16**
+```{r Fig 16}
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q18_howoftenpracticemindfullness, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "How often do you practice mindfulness techniques? (i.e. breathing exercises, meditation, etc.,") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 17**
+```{r Fig 17} 
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=behaviors, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Which of the following behaviors do you participate in? Check all that apply. ") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 18**
+```{r Fig 18}
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "The things I do in the last hour before bed affect the quality of my sleep.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_2_gettingagoodnightssleepisimportantome, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Getting a good night's sleep is important to me.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_3_mostofmyfriendshaveahealthysleeproutine, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Most of my friends have a healthy sleep routine.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_4_lackofsleepaffectsmyacademicperformance, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Lack of sleep affects my academic performance.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_5_havingaregularsleeproutineimprovesmentalclariy, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Having a regular sleep routine improves mental clarity/sharpness.") +
+  xlab("") +
+  labs(fill='') 
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_6_ifeelpositiveaboutthequalityofmysleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I feel positive about the quality of my sleep.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I think cutting out screen use 1 hour before bed leads to better sleep.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_8_ithinkingworkingoutregularlyleadstobettersleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I think working out regularly leads to better sleep.") +
+  xlab("") +
+  labs(fill='') 
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q44_9_ithinkmeditatingbeforesleephelpsquality, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I think meditating before bed helps sleep quality.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+``` 
+
+**Fig 19**
+```{r Fig 19}
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_1_icanmaintainhealthysleephabits, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can maintain healthy sleep habits.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can cut out screen use 1 hour before bed.") +
+  xlab("") +
+  labs(fill='') 
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_3_icanworkoutregularly, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can work out regularly.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_4_icanmediatebeforebed, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can meditate before bed.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 20**
+```{r Fig 20}
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_1_energyfordailyacitivites, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Energy for daily activities") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_2_attractivness, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Attractiveness (to self & others)") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_3_productivity, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Productivity at work/school") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_4_accomplishmentofotherdailygoals, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Accomplishment of other daily goals (e.g. exercise, cooking, paying bills, etc)") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g<- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_5_mentalandemotionalwellbeing, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Mental and emotional wellbeing") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_6_fosteringmaintaingrelationships, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Fostering/maintaining relationships") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q50_7_caringforchildren, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "Caring for children") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+**Fig 21**
+```{r Fig 21}
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_1_icanmaintainhealthysleephabits, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can maintain healthy sleep habits.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+
+g <- ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_2_icancutoutscreenuseonehourbeforesleep, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can cut out screen use 1 hour before bed.") +
+  xlab("") +
+  labs(fill='')  
+
+g+ scale_fill_lancet() 
+  
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_3_icanworkoutregularly, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can work out regularly.") +
+  xlab("") +
+  labs(fill='') 
+
+g + scale_fill_lancet() 
+
+g <-ggplot(analysisdata) + 
+  geom_bar(aes(x=Q59_4_icanmediatebeforebed, fill=compositeoutcomegoodsleep)) +
+  #coord_flip() +
+  theme_test() +
+  theme(text = element_text(size=32), axis.text.x = element_text(size=18)) +
+  labs(title = "I can meditate before bed.") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet() 
+```
+
+**Fig 22**
+```{r Fig 22}
+g<-ggplot(analysisdata) + 
+  geom_bar(aes(x=information, fill=compositeoutcomegoodsleep)) +
+  theme_test() +
+  theme(text = element_text(size=20), axis.text.x = element_text(size=16)) +
+  labs(title = "Where have you seen or received information about sleep quality or sleep hygiene? Check all that apply. ") +
+  xlab("") +
+  labs(fill='') 
+
+g+ scale_fill_lancet()
 ```
 
