@@ -38,18 +38,64 @@ analysisdata <- readRDS("foranalysis.rds")
 ```
 
 ```{r Coding}
+#Binary variable for seven or nine weighted as 1
 analysisdata <- analysisdata %>% mutate(
-  compositeoutcomegoodsleep = case_when(
+  sevenornine = case_when(
     Q10_workdayhoursofsleep >= 7.0 & Q10_workdayhoursofsleep <= 9.0 ~ 1,
     Q10_workdayhoursofsleep < 7.0 | Q10_workdayhoursofsleep > 9.0 ~ 0,
-    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat agree" & Q13_consistentwakeup == "Yes" ~ 1,
-    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly agree" & Q13_consistentwakeup == "Yes"~ 1,
-    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0,
-    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0,
-    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Neither agree nor disagree" & (Q13_consistentwakeup == "No" | Q13_consistentwakeup == "Sometimes") ~ 0
+    is.na(Q10_workdayhoursofsleep) ~ NA_real_
+    ))
+
+
+#analysisdata <- analysisdata %>% mutate(
+#  sevenornine = case_when(
+#    Q10_workdayhoursofsleep >= 7.0 & Q10_workdayhoursofsleep <= 9.0 ~ 2,
+#    Q10_workdayhoursofsleep < 7.0 | Q10_workdayhoursofsleep > 9.0 ~ 0,
+#    is.na(Q10_workdayhoursofsleep) ~ NA_real_
+#    ))
+
+#Binary variable for quality of sleep weighted as 1
+analysisdata <- analysisdata %>% mutate(
+  quality = case_when(
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat agree" ~ 1,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly agree" ~ 1,
+    is.na(Q44_6_ifeelpositiveaboutthequalityofmysleep) ~ NA_real_,
+    TRUE ~ 0))
+
+#Binary variable for consistency of wake up weighted as 1
+analysisdata <- analysisdata %>% mutate(
+  consistency = case_when(
+    Q13_consistentwakeup == "Yes" ~ 1,
+    is.na(Q13_consistentwakeup) ~ NA_real_,
+    TRUE ~ 0))
+
+#Compositescore computation
+analysisdata <- analysisdata %>% mutate(
+  compositescore = sevenornine + quality + consistency
   )
-) %>% mutate(compositeoutcomegoodsleep = factor(compositeoutcomegoodsleep, label = c("Poor sleep", "Good sleep"))) %>%
-  filter(!is.na(compositeoutcomegoodsleep))
+
+#analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = factor(compositescore, label = c("score 0 - worst sleep", "score 1", "score 2", "score 3 - best sleep"))) %>%
+#  filter(!is.na(compositescore))
+
+#analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = factor(compositescore, label = c("score 0 - worst sleep", "score 1", "score 2", "score 3", "score 4 - best sleep"))) %>%
+#  filter(!is.na(compositescore))
+
+
+ analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = case_when(
+   compositescore >= 2 ~ 1,
+   compositescore < 2 ~ 0,
+   is.na(compositescore) ~ NA_real_)) %>% 
+   mutate(compositeoutcomegoodsleep = factor(compositeoutcomegoodsleep, label = c("Poor sleep (score less than 2)", "Good sleep (score 2 or more)"))) %>%  filter(!is.na(compositescore))
+
+#Logistic regression just input demographic variables, then add pyschosocial variables and see how that affects model statistics. Sequential adjustment.
+
+#Cut it in different places. 
+#Split between 2 and 3 , and 3 and 4 
+
+#Cumulative score how many ones do you get 
+#hours of sleep (7-9) vs. outside of (7-9) --> either interim category 
+#quality of sleep (1) sometimes or (0)
+#consistent wakeup (1) sometimes/no (0)
 ```
 
 ```{r Table 1}
