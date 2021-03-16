@@ -1,5 +1,5 @@
 ---
-title: "Sleep hygiene Survey 3/11/2021"
+title: "Sleep hygiene Survey 3/16/2021"
 output:
   html_document:
     code_folding: hide
@@ -36,7 +36,7 @@ library(expss)
 ```
 
 ```{r Read in data}
-sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 12, 2021_15.56.csv")
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/3rd term/Health Communication Programs I/Stats/Sleep Hygiene Survey_March 16, 2021_10.59.csv")
 
 sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
 
