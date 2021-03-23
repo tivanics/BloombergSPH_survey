@@ -19,7 +19,9 @@ library(arsenal)
 library(data.table)
 library(expss)
 library(ggsci)
-
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
 #ideas, stratify by what do you consider a good nights sleep
 #additive index according to behaviors 
 #regression models for the outcome.
@@ -699,4 +701,6 @@ g<-ggplot(analysisdata) +
 
 g+ scale_fill_lancet()
 ```
+
+
 

@@ -1,0 +1,348 @@
+---
+title: "Logistic regression 23-March-2021"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 20, fig.height = 20, results="asis")
+```
+
+```{r Load up packages to use}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(arsenal)
+library(data.table)
+library(expss)
+library(ggsci)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+#ideas, stratify by what do you consider a good nights sleep
+#additive index according to behaviors 
+#regression models for the outcome.
+
+#Positive quality of sleep - 
+#Consistent wake up 
+#Greater than 7 hrs to 9 hrs --> stratify #for sure USE THIS AND ONE OR THE OTHER
+  #Agreement questions Q44
+  #Current bedtime routines
+  #Current lifestyle habits
+  #Employment and children
+```
+
+```{r rds file read in}
+analysisdata <- readRDS("foranalysis.rds")
+```
+
+```{r Coding}
+#Binary variable for seven or nine weighted as 1
+analysisdata <- analysisdata %>% mutate(
+  sevenornine = case_when(
+    Q10_workdayhoursofsleep >= 7.0 & Q10_workdayhoursofsleep <= 9.0 ~ 1,
+    Q10_workdayhoursofsleep < 7.0 | Q10_workdayhoursofsleep > 9.0 ~ 0,
+    is.na(Q10_workdayhoursofsleep) ~ NA_real_
+    ))
+
+
+#analysisdata <- analysisdata %>% mutate(
+#  sevenornine = case_when(
+#    Q10_workdayhoursofsleep >= 7.0 & Q10_workdayhoursofsleep <= 9.0 ~ 2,
+#    Q10_workdayhoursofsleep < 7.0 | Q10_workdayhoursofsleep > 9.0 ~ 0,
+#    is.na(Q10_workdayhoursofsleep) ~ NA_real_
+#    ))
+
+#Binary variable for quality of sleep weighted as 1
+analysisdata <- analysisdata %>% mutate(
+  quality = case_when(
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Somewhat agree" ~ 1,
+    Q44_6_ifeelpositiveaboutthequalityofmysleep == "Strongly agree" ~ 1,
+    is.na(Q44_6_ifeelpositiveaboutthequalityofmysleep) ~ NA_real_,
+    TRUE ~ 0))
+
+#Binary variable for consistency of wake up weighted as 1
+analysisdata <- analysisdata %>% mutate(
+  consistency = case_when(
+    Q13_consistentwakeup == "Yes" ~ 1,
+    is.na(Q13_consistentwakeup) ~ NA_real_,
+    TRUE ~ 0))
+
+#Compositescore computation
+analysisdata <- analysisdata %>% mutate(
+  compositescore = sevenornine + quality + consistency
+  )
+
+#analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = factor(compositescore, label = c("score 0 - worst sleep", "score 1", "score 2", "score 3 - best sleep"))) %>%
+#  filter(!is.na(compositescore))
+
+#analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = factor(compositescore, label = c("score 0 - worst sleep", "score 1", "score 2", "score 3", "score 4 - best sleep"))) %>%
+#  filter(!is.na(compositescore))
+
+
+ analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleep = case_when(
+   compositescore >= 2 ~ 1,
+   compositescore < 2 ~ 0,
+   is.na(compositescore) ~ NA_real_)) %>% 
+   mutate(compositeoutcomegoodsleep = factor(compositeoutcomegoodsleep, label = c("Poor sleep (score less than 2)", "Good sleep (score 2 or more)"))) %>%  filter(!is.na(compositescore))
+
+#Logistic regression just input demographic variables, then add pyschosocial variables and see how that affects model statistics. Sequential adjustment.
+
+#Cut it in different places. 
+#Split between 2 and 3 , and 3 and 4 
+
+#Cumulative score how many ones do you get 
+#hours of sleep (7-9) vs. outside of (7-9) --> either interim category 
+#quality of sleep (1) sometimes or (0)
+#consistent wakeup (1) sometimes/no (0)
+```
+
+```{r}
+ analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleepbinary = case_when(
+   compositescore >= 2 ~ 1,
+   compositescore < 2 ~ 0,
+   is.na(compositescore) ~ NA_real_))
+
+#consider less than 0.1
+#program
+#emotions, social media, exercise, 
+#Trying
+analysisdata <- analysisdata %>% mutate(Q4_gender_binary = case_when(
+  Q4_gender == "Male" ~ 1,
+  Q4_gender == "Female" ~ 0,
+  TRUE ~ NA_real_
+)) %>% 
+  mutate(Q2_program_reduced = case_when(
+    Q2_program == "Masters Student" ~ 0,
+    Q2_program == "Post doctoral student" ~ 1,
+    TRUE ~ NA_real_
+  )) %>%
+mutate(
+  Q4_gender_binary = factor(Q4_gender_binary, labels = c("Female", "Male")),
+  Q2_program_reduced = factor(Q2_program_reduced, labels = c("Masters", "Postdoc"))
+)
+
+#m1
+m1 <- glm(compositeoutcomegoodsleepbinary ~ Q4_gender_binary,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m1)
+
+#m2
+m2 <- glm(compositeoutcomegoodsleepbinary ~ Q2_program_reduced,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m2)
+
+#m3
+m3 <- glm(compositeoutcomegoodsleepbinary ~ Q3_role,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m3)
+
+#m4
+m4 <- glm(compositeoutcomegoodsleepbinary ~ Q5_age,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m4)
+
+#m5
+m5 <- glm(compositeoutcomegoodsleepbinary ~ Q6_numberinhousehold,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m5)
+
+#m6
+m6 <- glm(compositeoutcomegoodsleepbinary ~ Q37_employed,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m6)
+
+#m7
+m7 <- glm(compositeoutcomegoodsleepbinary ~ Q38_wfh,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m7)
+
+#m8 
+m8 <- glm(compositeoutcomegoodsleepbinary ~ Q7_children,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m8)
+
+#m9
+m9 <- glm(compositeoutcomegoodsleepbinary ~ Q8_diagnosis,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m9)
+
+#m10
+m10 <- glm(compositeoutcomegoodsleepbinary ~ Q10_workdayhoursofsleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m10)
+
+#m10
+m11 <- glm(compositeoutcomegoodsleepbinary ~ Q11_weekendhoursofsleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m11)
+
+#m12
+m12 <- glm(compositeoutcomegoodsleepbinary ~ Q13_consistentwakeup,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m12)
+
+#m13
+m13 <- glm(compositeoutcomegoodsleepbinary ~ Q15_consistentbedtimeonweekdays,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m13)
+
+#m14
+m14 <- glm(compositeoutcomegoodsleepbinary ~ Q49_sleepqualitychangecovid,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m14)
+
+#m15
+m15 <- glm(compositeoutcomegoodsleepbinary ~ Q18_howoftenpracticemindfullness,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m15)
+
+#m16
+m16 <- glm(compositeoutcomegoodsleepbinary ~ Q44_1_thingsidointhelasthourbeforesleepaffectthequalityofmysleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m16)
+
+#m17
+m17 <- glm(compositeoutcomegoodsleepbinary ~ Q44_3_mostofmyfriendshaveahealthysleeproutine,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m17)
+
+#m18
+m18 <- glm(compositeoutcomegoodsleepbinary ~ Q44_4_lackofsleepaffectsmyacademicperformance,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m18)
+
+#m19
+m19 <- glm(compositeoutcomegoodsleepbinary ~ Q44_7_ithinkcuttingoutscreenuseonehourbeforesleepleadstobettersleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m19)
+
+#m20
+m20 <- glm(compositeoutcomegoodsleepbinary ~ Q44_8_ithinkingworkingoutregularlyleadstobettersleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m20)
+
+#m21
+m21 <- glm(compositeoutcomegoodsleepbinary ~ Q44_9_ithinkmeditatingbeforesleephelpsquality,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m21)
+
+#m22
+m22 <- glm(compositeoutcomegoodsleepbinary ~ Q59_1_icanmaintainhealthysleephabits,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m22)
+
+#m23
+m23 <- glm(compositeoutcomegoodsleepbinary ~ Q59_2_icancutoutscreenuseonehourbeforesleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m23)
+
+#m24
+m24 <- glm(compositeoutcomegoodsleepbinary ~ Q59_3_icanworkoutregularly,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m24)
+
+#m25
+m25 <- glm(compositeoutcomegoodsleepbinary ~ Q59_4_icanmediatebeforebed,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m25)
+
+#m26
+m26 <- glm(compositeoutcomegoodsleepbinary ~ Q19_howmanyhourssdidyouuseascreen,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m26)
+
+#m27
+m27 <- glm(compositeoutcomegoodsleepbinary ~ Q12_1_howmanynightsusescreen,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m27)
+
+#m28
+m28 <- glm(compositeoutcomegoodsleepbinary ~ Q17_stressedaboutschool,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m28)
+
+#m29
+m29 <- glm(compositeoutcomegoodsleepbinary ~ Q33_whatisthrecommendednumbersofhoursofsleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m29)
+
+#m30
+m30 <- glm(compositeoutcomegoodsleepbinary ~ Q50_1_energyfordailyacitivites,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m30)
+
+#m31
+m31 <- glm(compositeoutcomegoodsleepbinary ~ Q50_2_attractivness,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m31)
+
+#m32
+m32 <- glm(compositeoutcomegoodsleepbinary ~ Q50_3_productivity,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m32)
+
+#m33
+m33 <- glm(compositeoutcomegoodsleepbinary ~ Q50_4_accomplishmentofotherdailygoals,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m33)
+
+#m34
+m34 <- glm(compositeoutcomegoodsleepbinary ~ Q50_5_mentalandemotionalwellbeing,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m34)
+
+#m35
+m35 <- glm(compositeoutcomegoodsleepbinary ~ Q50_6_fosteringmaintaingrelationships,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m35)
+
+#m36
+m36 <- glm(compositeoutcomegoodsleepbinary ~ Q50_7_caringforchildren,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m36)
+
+#m37
+m37 <- glm(compositeoutcomegoodsleepbinary ~ Q53_1_getoutsidefor10mininthemorning,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m37)
+
+#m38
+m38 <- glm(compositeoutcomegoodsleepbinary ~ Q53_2_exerciseduringtheday,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m38)
+
+#m39
+m39 <- glm(compositeoutcomegoodsleepbinary ~ Q53_3_doingabreathingexercisebeforesleep,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m39)
+
+#m40
+m40 <- glm(compositeoutcomegoodsleepbinary ~ Q53_4_notusescreens,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m40)
+
+#m41
+m41 <- glm(compositeoutcomegoodsleepbinary ~ Q53_5_listeningtoacalmingaudiobookorpodcast,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m41)
+
+#m42
+m42 <- glm(compositeoutcomegoodsleepbinary ~ Brushing.teeth,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m42)
+
+#m43
+m43 <- glm(compositeoutcomegoodsleepbinary ~ Watching.TV,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m43)
+
+#m44
+m44 <- glm(compositeoutcomegoodsleepbinary ~ Phone.Usage,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m44)
+
+#m45
+m45 <- glm(compositeoutcomegoodsleepbinary ~ Listening.to.Music,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m45)
+
+#m46
+m46 <- glm(compositeoutcomegoodsleepbinary ~ Washing.my.face,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m46)
+
+#m47
+m47 <- glm(compositeoutcomegoodsleepbinary ~ Showering,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m47)
+
+#m48
+m48 <- glm(compositeoutcomegoodsleepbinary ~ Journaling,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m48)
+
+#m49
+m49 <- glm(compositeoutcomegoodsleepbinary ~ Reading,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m49)
+
+#m50
+m50 <- glm(compositeoutcomegoodsleepbinary ~ Meditating,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m50)
+
+#m51
+m51 <- glm(compositeoutcomegoodsleepbinary ~ bedtimeroutine,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m51)
+
+#m52
+m52 <- glm(compositeoutcomegoodsleepbinary ~ cantsleepfeeling,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m52)
+
+#m53
+m53 <- glm(compositeoutcomegoodsleepbinary ~ behaviors,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m53)
+
+#m54
+m54 <- glm(compositeoutcomegoodsleepbinary ~ information,family = binomial(link = "logit"), data = analysisdata)
+tab_model(m54)
+
+#
+mylogit <- glm(compositeoutcomegoodsleepbinary ~ cantsleepfeeling + behaviors + Q4_gender + Q5_age, data = analysisdata)
+tab_model(mylogit)
+
+```
