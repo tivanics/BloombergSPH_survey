@@ -1,6 +1,7 @@
 ---
 title: "Logistic regression 23-March-2021"
 output:
+  word_document: default
   html_document:
     code_folding: hide
     theme: flatly
@@ -344,5 +345,33 @@ tab_model(m54)
 #
 mylogit <- glm(compositeoutcomegoodsleepbinary ~ cantsleepfeeling + behaviors + Q4_gender + Q5_age, data = analysisdata)
 tab_model(mylogit)
+```
+
+```{r}
+attach(analysisdata)
+ analysisdata <- analysisdata %>% mutate(compositeoutcomegoodsleepbinary_badsleep = case_when(
+   compositescore >= 2 ~ 0,
+   compositescore < 2 ~ 1,
+   is.na(compositescore) ~ NA_real_))
+
+analysisdata <- analysisdata %>% 
+  mutate(Confidence = case_when(
+    Q59_1_icanmaintainhealthysleephabits == "Extremely confident" ~ 1,
+    Q59_1_icanmaintainhealthysleephabits == "Pretty confident" ~ 1,
+    is.na(Q59_1_icanmaintainhealthysleephabits) ~ NA_real_,
+    TRUE ~ 0
+  )) %>%
+  mutate(Workoutregularly = case_when(
+    Q59_3_icanworkoutregularly == "Extremely confident" ~ 1,
+    Q59_3_icanworkoutregularly == "Pretty confident" ~ 1,
+    is.na(Q59_3_icanworkoutregularly) ~ NA_real_,
+    TRUE ~ 0
+  ))
+
+
+
+mylogit <- glm(compositeoutcomegoodsleepbinary_badsleep ~ Q4_gender_binary + Q6_numberinhousehold + Q11_weekendhoursofsleep + Confidence + Workoutregularly + Showering + Guilty + Sad + Social.Media.Use, family = binomial(link = "logit"), data = analysisdata)
+tab_model(mylogit)
 
 ```
+

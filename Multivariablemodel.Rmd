@@ -1,0 +1,29 @@
+---
+title: "Multivariable model"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 20, fig.height = 20, results="asis")
+```
+
+```{r Load up packages to use}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+```
+
+```{r rds file read in}
+analysisdata <- readRDS("multivariablemodel.rds")
+```
+
+```{r}
+mylogit <- glm(compositeoutcomegoodsleepbinary_badsleep ~ Q4_gender_binary + Q6_numberinhousehold + Q11_weekendhoursofsleep + Confidence + Workoutregularly + Showering + Guilty + Sad + Social.Media.Use, family = binomial(link = "logit"), data = analysisdata)
+tab_model(mylogit)
+```
+
