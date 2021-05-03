@@ -15,3 +15,6 @@ Survey for the sleep hygiene group
 
 ### Composite outcome defined according to sleep duration (good 7-9 hours), quality, and consistency in wakeup. Multivariable Logistic regression (dependent variable is bad sleep [<2 points])
 - Multivariable Logistic regression Mar 24 2021 [here](https://tivanics.github.io/BloombergSPH_survey/Multivariablemodel.html)
+
+### Post survey
+- Post survey May 3rd 2021 [here](https://tivanics.github.io/BloombergSPH_survey/SleephygienestatsPOSTSURVEY.html)
