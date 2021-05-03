@@ -336,7 +336,7 @@ tab1 <- tableby(~ Q3_role +
                   Q61_howoftensleepypasttwoweeks +
                   Q84_awareofhowtoimprovesleepquality +
                   Q81_seenorheardfromGNbloombergcampaign +
-                  Q63_recalltoolsfreetect +
+                  #Q63_recalltoolsfreetect +
                   Q96_picture1 +
                   Q96_picture2 +
                   Q96_picture3 +
@@ -496,9 +496,11 @@ tab16 <- tableby(~ Q81_seenorheardfromGNbloombergcampaign,
                 data=seenordheard, test=TRUE, total=TRUE, 
                 numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
 summary(tab16, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
-
-
 ```
 
+```{r eval=FALSE}
+mylogit <- glm(compositeoutcomegoodsleepbinary_badsleep ~ Q4_gender_binary + Q6_numberinhousehold + Q11_weekendhoursofsleep + Confidence + Workoutregularly + Showering + Guilty + Sad + Social.Media.Use, family = binomial(link = "logit"), data = analysisdata)
+tab_model(mylogit)
+```
 
 
