@@ -23,7 +23,7 @@ library(expss)
 ```
 
 ```{r Read in data}
-sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/4th term/HealthComm/Qualtrics post/Sleep Hygiene Post-Survey_May 3, 2021_16.45.csv")
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/4th term/HealthComm/Qualtrics post/Sleep Hygiene Post-Survey_May 4, 2021_09.05.csv")
 
 sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
 
@@ -209,7 +209,7 @@ sleephygiene <- sleephygiene %>%
 ```
 
 **Plots for wakeup and sleep times**
-```{r fig.width = 14, fig.height = 14}
+```{r fig.width = 12, fig.height = 12}
 library(plotly)
 workdayssleep <- sleephygiene %>% ggplot( aes(x=Q10_hoursofsleeplast5workdays)) +
     geom_histogram( binwidth=1, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
@@ -498,9 +498,165 @@ tab16 <- tableby(~ Q81_seenorheardfromGNbloombergcampaign,
 summary(tab16, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
 ```
 
-```{r eval=FALSE}
-mylogit <- glm(compositeoutcomegoodsleepbinary_badsleep ~ Q4_gender_binary + Q6_numberinhousehold + Q11_weekendhoursofsleep + Confidence + Workoutregularly + Showering + Guilty + Sad + Social.Media.Use, family = binomial(link = "logit"), data = analysisdata)
-tab_model(mylogit)
+```{r}
+sleephygiene <- sleephygiene %>% mutate(Engagementyesno = case_when(
+  Q69_didyouengagewiththecampaign == "Yes" ~ 1,
+  Q69_didyouengagewiththecampaign == "No" ~ 0,
+  Q69_didyouengagewiththecampaign == "Don't know" ~ 0,
+  is.na(Q69_didyouengagewiththecampaign) ~ NA_real_)) %>%
+  mutate(Engagementyesno = factor(Engagementyesno))
+
+tab1 <- tableby(Engagementyesno ~ Q3_role + 
+                  Q4_gender +
+                  Q5_age +
+                  Q6_numberinhousehold +
+                  Q37_employed +
+                  Q10_hoursofsleeplast5workdays +
+                  Q10_hoursofsleeppastweekend +
+                  Q9_howoftensleepypastmonth +
+                  Q61_howoftensleepypasttwoweeks +
+                  Q84_awareofhowtoimprovesleepquality +
+                  Q81_seenorheardfromGNbloombergcampaign +
+                  Q96_picture1 +
+                  Q96_picture2 +
+                  Q96_picture3 +
+                  Q96_picture4 +
+                  Q96_picture5 +
+                  Q96_picture6 +
+                  Q96_picture7 +
+                  Q96_picture8 +
+                  Q95_talkedtoanyone +
+                  Q82_knowanyonewhoengaged +
+                  Q69_didyouengagewiththecampaign +
+                  Q67_move30minutes +
+                  Q67_breathing +
+                  Q67_powerdown +
+                  Q68_timing + 
+                  Q79_moresuccessfuloutcomsuggestions +
+                  Q59_canmaintainhealthysleephabits +
+                  Q59_cancutoutscreen +
+                  Q59_canexercise +
+                  Q59_canparticipateinbreathing +
+                  Q44_goodnightsleepisimportant +
+                  Q44_mentalclarity +
+                  Q44_feelpositive +
+                  Q44_cuttingoutscreenleadstobettersleep +
+                  Q44_exercisingleadstobettersleep +
+                  Q44_breathingexercisesleadstobettersleep +
+                  Q44_iwillstopscreens +
+                  Q44_iwillexercise +
+                  Q44_iwillbreathe,
+                data=sleephygiene, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
 ```
+
+```{r}
+sleephygienepre <- readRDS(file="foranalysis.rds")
+
+sleephygienepre <- sleephygienepre %>% 
+  mutate(Q5_age = case_when(
+    Q5_age >= 18 & Q5_age <= 25 ~ "18-25",
+    Q5_age >= 26 & Q5_age <= 34 ~ "26-34",
+    Q5_age >= 35 & Q5_age <= 44 ~ "35-44",
+    Q5_age >= 45 & Q5_age <= 54 ~ "45-54",
+    Q5_age >= 55 & Q5_age < 64 ~ "55-64",
+    Q5_age >= 64 & Q5_age <= 75 ~ "64-75",
+    Q5_age > 75 ~ "75+",
+    is.na(Q5_age) ~ NA_character_
+  )) %>% 
+  mutate(Q5_age = factor(Q5_age)) %>%
+  mutate(post = 0) %>% 
+  mutate(
+    Q10_hoursofsleeplast5workdays = Q10_workdayhoursofsleep,
+    Q10_hoursofsleeppastweekend = Q11_weekendhoursofsleep,
+    Q61_howoftensleepypasttwoweeks = Q9_howoftensleepy
+  ) %>%
+  select(post, Q3_role, Q2_program, Q4_gender, Q5_age, Q6_numberinhousehold, Q10_hoursofsleeplast5workdays, Q10_hoursofsleeppastweekend, Q61_howoftensleepypasttwoweeks)
+  
+sleephygienepost <- sleephygiene %>% mutate(post = 1) %>% select(post, Q3_role, Q2_program, Q4_gender, Q5_age, Q6_numberinhousehold, Q10_hoursofsleeplast5workdays, Q10_hoursofsleeppastweekend, Q61_howoftensleepypasttwoweeks) 
+
+sleephygienepreandpost <- rbind(sleephygienepre, sleephygienepost)
+
+sleephygienepreandpost <- sleephygienepreandpost %>% mutate(Q61_smaller = case_when(
+  is.na(Q61_howoftensleepypasttwoweeks) ~ NA_character_,
+  Q61_howoftensleepypasttwoweeks == "Never" ~ "Never",
+  Q61_howoftensleepypasttwoweeks == "Rarely" ~ "Rarely",
+  Q61_howoftensleepypasttwoweeks == "Sometimes" ~ "Sometimes",
+  Q61_howoftensleepypasttwoweeks == "Very often" | Q61_howoftensleepypasttwoweeks == "Always" ~ "Very often or Alway",
+)) %>%
+  mutate(Q61_smaller = factor(Q61_smaller))
+
+tab1 <- tableby(post ~ Q3_role +
+                  Q2_program + 
+                  Q4_gender + 
+                  Q5_age + 
+                  Q6_numberinhousehold +
+                  Q10_hoursofsleeplast5workdays +
+                  Q10_hoursofsleeppastweekend +
+                  Q61_smaller,
+                data=sleephygienepreandpost, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+```
+
+```{r}
+library(sjPlot)
+sleephygiene <- sleephygiene %>% mutate(Q69_didyouengagewiththecampaignbinary = case_when(
+  Q69_didyouengagewiththecampaign == "No" ~ 0,
+  Q69_didyouengagewiththecampaign == "Yes" ~ 1)) %>%
+  mutate(Q4_gender_binary = case_when(
+    Q4_gender == "Male" ~ 1,
+    Q4_gender == "Female" ~ 0,
+    TRUE ~ NA_real_
+  )) %>%
+  mutate(Q4_gender_binary = factor(Q4_gender_binary, labels = c("Female", "Male"))) %>%
+  mutate(happywithsleepqualitycombined = case_when(
+    Q90_areyouhappywithyoursleepquality_awareofcampaign == "Yes" ~ 1,
+    Q90_areyouhappywithyoursleepquality_awareofcampaign == "No" ~ 0,
+    Q91_areyouhappywithyoursleepquality_notawareofcampaign == "Yes" ~ 1,
+    Q91_areyouhappywithyoursleepquality_notawareofcampaign == "No" ~ 0,
+    Q89_ratesleepquality_notawareofcampaign == "Good" ~ 1,
+    Q89_ratesleepquality_notawareofcampaign == "Excellent" ~ 1,
+    Q89_ratesleepquality_notawareofcampaign == "Poor" ~ 0,
+    Q89_ratesleepquality_notawareofcampaign == "Fair" ~ 0,
+  )) %>%
+  mutate(happywithsleepqualitycombined = factor(happywithsleepqualitycombined)) %>%
+  mutate(Q67_1 = case_when(
+    is.na(Q67_1) ~ 0,
+    TRUE ~ as.numeric(Q67_1)
+  )) %>%
+  mutate(Q67_2 = case_when(
+    is.na(Q67_2) ~ 0,
+    TRUE ~ as.numeric(Q67_2)
+  )) %>%
+  mutate(Q67_3 = case_when(
+    is.na(Q67_3) ~ 0,
+    TRUE ~ as.numeric(Q67_3)
+  )) %>%
+  mutate(pointscombinedperdays = Q67_1 + Q67_2 + Q67_3) %>%
+  mutate(ratesleepqualitycombined = case_when(
+    Q89_ratesleepquality_notawareofcampaign == "Good" ~ 1,
+    Q89_ratesleepquality_notawareofcampaign == "Excellent" ~ 1,
+    Q89_ratesleepquality_notawareofcampaign == "Poor" ~ 0,
+    Q89_ratesleepquality_notawareofcampaign == "Fair" ~ 0,
+  ))
+
+#Participating in the campaign
+mylogit <- glm(Q69_didyouengagewiththecampaignbinary ~ Q4_gender_binary + Q10_hoursofsleeplast5workdays + Q10_hoursofsleeppastweekend, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+#Happy with sleep quality
+mylogit <- glm(happywithsleepqualitycombined ~ Q4_gender_binary + Q10_hoursofsleeplast5workdays + Q10_hoursofsleeppastweekend + Q69_didyouengagewiththecampaignbinary, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+mylogit <- glm(happywithsleepqualitycombined ~ pointscombinedperdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+
+```
+
+
+
 
 
