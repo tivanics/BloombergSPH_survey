@@ -573,7 +573,7 @@ sleephygienepre <- sleephygienepre %>%
     Q10_hoursofsleeppastweekend = Q11_weekendhoursofsleep,
     Q61_howoftensleepypasttwoweeks = Q9_howoftensleepy
   ) %>%
-  select(post, Q3_role, Q2_program, Q4_gender, Q5_age, Q6_numberinhousehold, Q10_hoursofsleeplast5workdays, Q10_hoursofsleeppastweekend, Q61_howoftensleepypasttwoweeks)
+  select(post, Q3_role, Q2_program, Q4_gender, Q5_age, Q6_numberinhousehold, Q10_hoursofsleeplast5workdays, Q10_hoursofsleeppastweekend, Q61_howoftensleepypasttwoweeks) 
   
 sleephygienepost <- sleephygiene %>% mutate(post = 1) %>% select(post, Q3_role, Q2_program, Q4_gender, Q5_age, Q6_numberinhousehold, Q10_hoursofsleeplast5workdays, Q10_hoursofsleeppastweekend, Q61_howoftensleepypasttwoweeks) 
 
@@ -584,9 +584,14 @@ sleephygienepreandpost <- sleephygienepreandpost %>% mutate(Q61_smaller = case_w
   Q61_howoftensleepypasttwoweeks == "Never" ~ "Never",
   Q61_howoftensleepypasttwoweeks == "Rarely" ~ "Rarely",
   Q61_howoftensleepypasttwoweeks == "Sometimes" ~ "Sometimes",
-  Q61_howoftensleepypasttwoweeks == "Very often" | Q61_howoftensleepypasttwoweeks == "Always" ~ "Very often or Alway",
+  Q61_howoftensleepypasttwoweeks == "Very often" | Q61_howoftensleepypasttwoweeks == "Always" ~ "Very often or Always",
 )) %>%
-  mutate(Q61_smaller = factor(Q61_smaller))
+  mutate(Q61_smaller = factor(Q61_smaller)) %>%
+  mutate(Q2_program = case_when(
+  Q2_program == "Post-doctoral student" ~ as.character("Post doctoral student"),
+  TRUE ~ as.character(Q2_program)
+  )) %>%
+  mutate(Q2_program = factor(Q2_program))
 
 tab1 <- tableby(post ~ Q3_role +
                   Q2_program + 
