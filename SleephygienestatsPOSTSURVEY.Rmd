@@ -1,10 +1,11 @@
 ---
-title: "Sleep hygiene Post-Survey 5/3/2021"
+title: "Sleep hygiene Post-Survey 5/4/2021"
 output:
   html_document:
     code_folding: hide
     theme: flatly
     highlight: tango
+  pdf_document: default
 ---
 
 
