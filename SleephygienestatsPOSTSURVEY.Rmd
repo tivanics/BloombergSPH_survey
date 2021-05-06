@@ -656,7 +656,7 @@ tab_model(mylogit)
 mylogit <- glm(happywithsleepqualitycombined ~ Q4_gender_binary + Q10_hoursofsleeplast5workdays + Q10_hoursofsleeppastweekend + Q69_didyouengagewiththecampaignbinary, family = binomial(link = "logit"), data = sleephygiene)
 tab_model(mylogit)
 
-mylogit <- glm(happywithsleepqualitycombined ~ pointscombinedperdays, family = binomial(link = "logit"), data = sleephygiene)
+mylogit <- glm(happywithsleepqualitycombined ~ Q10_hoursofsleeppastweekend + Q4_gender_binary + pointscombinedperdays, family = binomial(link = "logit"), data = sleephygiene)
 tab_model(mylogit)
 
 
