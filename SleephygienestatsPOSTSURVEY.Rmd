@@ -1,11 +1,12 @@
 ---
-title: "Sleep hygiene Post-Survey 5/6/2021"
+title: "Sleep hygiene Post-Survey 5/9/2021"
 output:
   html_document:
     code_folding: hide
     theme: flatly
     highlight: tango
   pdf_document: default
+  word_document: default
 ---
 
 
@@ -24,7 +25,7 @@ library(expss)
 ```
 
 ```{r Read in data}
-sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/4th term/HealthComm/Qualtrics post/Sleep Hygiene Post-Survey_May 6, 2021_13.37.csv")
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/4th term/HealthComm/Qualtrics post/Sleep Hygiene Post-Survey_May 9, 2021_19.51.csv")
 
 sleephygiene$StartDate <- lubridate::ymd_hms(sleephygiene$StartDate)
 
@@ -215,10 +216,13 @@ library(plotly)
 workdayssleep <- sleephygiene %>% ggplot( aes(x=Q10_hoursofsleeplast5workdays)) +
     geom_histogram( binwidth=1, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
     ggtitle("Hours of sleep last five workdays") +
-    theme(
-      plot.title = element_text(size=32)
+  theme(
+      text = element_text(size=30)
     ) +
-  labs(x="Number of hours of sleep in the past five workdays", y="Number of participants")
+  #theme_test(text = element_text(size=40)) + 
+  labs(x="Number of hours of sleep in the past five workdays", y="Number of participants") +
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0), limits = c(0,65))
+#workdayssleep
 ggplotly(workdayssleep)
 
 #Plot for weekend
@@ -226,9 +230,11 @@ weekend <- sleephygiene %>% ggplot( aes(x=Q10_hoursofsleeppastweekend)) +
     geom_histogram( binwidth=1, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
     ggtitle("Hours of sleep last weekend") +
     theme(
-      plot.title = element_text(size=32)
+      text = element_text(size=30)
     ) +
-  labs(x="Number of hours of sleep in the past weekend", y="Number of participants")
+  labs(x="Number of hours of sleep in the past weekend", y="Number of participants") +
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0), limits = c(0,60))
+#weekend
 ggplotly(weekend)
 ```
 
@@ -646,7 +652,35 @@ sleephygiene <- sleephygiene %>% mutate(Q69_didyouengagewiththecampaignbinary = 
     Q89_ratesleepquality_notawareofcampaign == "Excellent" ~ 1,
     Q89_ratesleepquality_notawareofcampaign == "Poor" ~ 0,
     Q89_ratesleepquality_notawareofcampaign == "Fair" ~ 0,
+  )) %>%
+  mutate(POINTSFROMPICS1 = case_when(
+    Q96_picture2 == "Yes" ~ 1,
+    TRUE ~ 0
+  )) %>%
+  mutate(POINTSFROMPICS2 = case_when(
+    Q96_picture4 == "Yes" ~ 1,
+    TRUE ~ 0
+  )) %>% mutate(POINTSFROMPICS3 = case_when(
+    Q96_picture5 == "Yes" ~ 1,
+    TRUE ~ 0
+  )) %>% mutate(POINTSFROMPICS4 = case_when(
+    Q96_picture7 == "Yes" ~ 1,
+    TRUE ~ 0
+  )) %>% mutate(POINTFROMENGAGEMENT = case_when(
+    Q69_didyouengagewiththecampaign == "Yes" ~ 1,
+    TRUE ~ 0
+    )) %>% mutate(
+      POINTSFROMPARTICIPATION = X.MoveMore + X.PowerDown + X.Breathe
+    ) %>%
+  mutate(TOTALPOINTS = pointscombinedperdays + POINTSFROMPICS1 + POINTSFROMPICS2 + POINTSFROMPICS3 + POINTSFROMPICS4 + POINTFROMENGAGEMENT + POINTSFROMPARTICIPATION) %>% mutate(AGESMALLERCATEGORIES = case_when(
+    Q5_age == "18-25" ~ 0,
+    Q5_age == "26-34" ~ 0,
+    Q5_age == "35-44" ~ 0,
+    Q5_age == "45-54" ~ 1,
+    Q5_age == "55-64" ~ 1,
+    Q5_age == "64-75" ~ 1
   ))
+
 
 #Participating in the campaign
 mylogit <- glm(Q69_didyouengagewiththecampaignbinary ~ Q4_gender_binary + Q10_hoursofsleeplast5workdays + Q10_hoursofsleeppastweekend, family = binomial(link = "logit"), data = sleephygiene)
@@ -658,8 +692,23 @@ tab_model(mylogit)
 
 mylogit <- glm(happywithsleepqualitycombined ~ Q10_hoursofsleeppastweekend + Q4_gender_binary + pointscombinedperdays, family = binomial(link = "logit"), data = sleephygiene)
 tab_model(mylogit)
+attach(sleephygiene)
+mylogit <- glm(happywithsleepqualitycombined ~ TOTALPOINTS + Q10_hoursofsleeplast5workdays + Q3_role + Q4_gender_binary + AGESMALLERCATEGORIES, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+```
 
 
+```{r}
+#knowing campaign exists
+#ACTION IS THE OUTCOME
+#Can you recall images
+#texting campaign
+#composite outcome HIGH AND LOW EXPOSURE
+
+#HIGH VS LOW EXPOSURE
+#LOGISTIC REGRESSION -- BEHAVIOR
+#OR LINEAR REGRESSION
+#Causal criteria...
 ```
 
 
