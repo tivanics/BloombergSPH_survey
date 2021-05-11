@@ -1,0 +1,142 @@
+---
+title: "Sleep hygiene text campaign analysis 5/10/2021"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+    highlight: tango
+  pdf_document: default
+  word_document: default
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 20, fig.height = 20, results="asis")
+```
+
+```{r Load up packages to use}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(arsenal)
+library(data.table)
+library(expss)
+```
+
+```{r Read in data}
+sleephygiene <- read_csv("/Users/Ivanics/Desktop/SPH/4th term/HealthComm/Text campaign/Text Campaign.csv")
+```
+
+```{r Recoding factors}
+#General factor recoding
+sleephygiene <- sleephygiene %>% mutate(
+  SLEEPQUALITY_DAY3 = as.numeric(`1: Sleep quality (day 3)`)) %>%
+  mutate(ACTIVITY_DAY7 = factor(`2: Activity (day 7)`)) %>%
+  mutate(SLEEPQUALITY_DAY12 = as.numeric(`3: Sleep quality (day 12)`)) %>%
+  mutate(ACTIVITY_DAY13 = factor(`4: Activity (day 13)_1`)) %>%
+  mutate(ACTIVITY_DAY13_2 = factor(`4: Activity (day 13)_1_1`)) %>%
+  mutate(OTHER_ENGAGEMENT = factor(`Other engagement`)) 
+```
+
+**Plots for wakeup and sleep times**
+```{r fig.width = 12, fig.height = 12}
+library(plotly)
+SLEEPQUALITY_DAY3_df <- sleephygiene %>% ggplot( aes(x=SLEEPQUALITY_DAY3)) +
+    geom_histogram( binwidth=1, fill="#fc7303", color="#000000", alpha=0.9) +
+    ggtitle("Sleep quality rated day 3") +
+  theme(
+      text = element_text(size=40)
+    ) +
+  #theme_test(text = element_text(size=40)) + 
+  labs(x="Sleep quality rated from 1- worst to 5-best", y="Number of participants") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 6)) + scale_y_continuous(expand = c(0, 0), limits = c(0,12))
+SLEEPQUALITY_DAY3_df
+ggplotly(SLEEPQUALITY_DAY3_df)
+
+
+#Plot for weekend
+library(plotly)
+SLEEPQUALITY_DAY12_df <- sleephygiene %>% ggplot( aes(x=SLEEPQUALITY_DAY12)) +
+    geom_histogram( binwidth=1, fill="#426CA6", color="#000000", alpha=0.9) +
+    ggtitle("Sleep quality rated day 12") +
+  theme(
+      text = element_text(size=40)
+    ) +
+  #theme_test(text = element_text(size=40)) + 
+  labs(x="Sleep quality rated from 1- worst to 5-best", y="Number of participants") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 6)) + scale_y_continuous(expand = c(0, 0), limits = c(0,8))
+SLEEPQUALITY_DAY12_df
+ggplotly(SLEEPQUALITY_DAY12_df)
+```
+
+```{r Table 1}
+attach(sleephygiene)
+
+sleephygiene <- sleephygiene %>% mutate(
+  ACTIVITY_DAY13_combined = case_when(
+    ACTIVITY_DAY13_2 == "B" ~ "Breathing",
+    ACTIVITY_DAY13 == "N" ~ "None",
+    ACTIVITY_DAY13 == "A" ~ "All",
+    ACTIVITY_DAY13 == "M" ~ "Move",
+    is.na(ACTIVITY_DAY13) ~ NA_character_
+)) %>%
+  mutate(ACTIVITY_DAY13_combined = factor(ACTIVITY_DAY13_combined)) %>%
+  mutate(FINALSLEEP =  case_when(
+    SLEEPQUALITY_DAY12 == 1 ~ 0,
+    SLEEPQUALITY_DAY12 == 2 ~ 0,
+    SLEEPQUALITY_DAY12 == 3 ~ 0,
+    SLEEPQUALITY_DAY12 == 4 ~ 1,
+    SLEEPQUALITY_DAY12 == 5 ~ 1,
+    is.na(SLEEPQUALITY_DAY12) ~ NA_real_
+  )) %>%
+  mutate(ENGAGEMENT_DAY13 = case_when(
+    ACTIVITY_DAY13_combined == "All" ~ 1,
+    ACTIVITY_DAY13_combined == "Breathing" ~ 1,
+    ACTIVITY_DAY13_combined == "Move" ~ 1,
+    ACTIVITY_DAY13_combined == "None" ~0
+  ))
+
+tab1 <- tableby(~ as.factor(SLEEPQUALITY_DAY3) +
+                  SLEEPQUALITY_DAY3 +
+                  as.factor(ACTIVITY_DAY7) +
+                  as.factor(SLEEPQUALITY_DAY12) +
+                  SLEEPQUALITY_DAY12 +
+                  ACTIVITY_DAY13_combined +
+                  OTHER_ENGAGEMENT,
+                data=sleephygiene, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+
+mylogit <- glm(FINALSLEEP ~ OTHER_ENGAGEMENT, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+library(sjPlot)
+```
+
+```{r}
+myColors <- ifelse(levels(sleephygiene$OTHER_ENGAGEMENT)=="no" , rgb(0.1,0.1,0.7,0.5) , 
+              ifelse(levels(sleephygiene$OTHER_ENGAGEMENT)=="yes", rgb(0.8,0.1,0.3,0.6),
+              "grey90" ) )
+
+boxplot(sleephygiene$SLEEPQUALITY_DAY3 ~ sleephygiene$OTHER_ENGAGEMENT , 
+    col=myColors , 
+    ylab="Sleep quality" , xlab="Intention to participate")
+
+boxplot(sleephygiene$SLEEPQUALITY_DAY12 ~ sleephygiene$OTHER_ENGAGEMENT , 
+    col=myColors , 
+    ylab="Sleep quality" , xlab="Intention to participate")
+
+
+#Pre <- ggplot(sleephygiene, aes(x = OTHER_ENGAGEMENT, y = SLEEPQUALITY_DAY3)) +
+#  labs(x="Intention to participate", y="Sleep quality") +
+#  geom_boxplot()  +
+#Pre
+#
+#Post <- ggplot(sleephygiene, aes(x = OTHER_ENGAGEMENT, y = SLEEPQUALITY_DAY12)) #+ geom_boxplot() +
+#  labs(x="Intention to participate", y="Sleep quality")
+#Post
+```
+
+
+
