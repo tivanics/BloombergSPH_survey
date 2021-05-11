@@ -18,3 +18,6 @@ Survey for the sleep hygiene group
 
 ### Post survey
 - Post survey May 9th 2021 [here](https://tivanics.github.io/BloombergSPH_survey/SleephygienestatsPOSTSURVEY.html)
+
+### Theoretical concept framwork multiple multivariable logistic regression models
+- May 11th 2021 [here](https://github.com/tivanics/BloombergSPH_survey/blob/main/Variablesdefinitionsandoutcomes.pdf)
