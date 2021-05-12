@@ -110,8 +110,8 @@ summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
 
 mylogit <- glm(FINALSLEEP ~ OTHER_ENGAGEMENT, family = binomial(link = "logit"), data = sleephygiene)
 tab_model(mylogit)
-
 library(sjPlot)
+
 ```
 
 ```{r}
