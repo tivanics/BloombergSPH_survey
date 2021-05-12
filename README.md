@@ -21,3 +21,6 @@ Survey for the sleep hygiene group
 
 ### Theoretical concept framwork multiple multivariable logistic regression models
 - May 11th 2021 [here](https://github.com/tivanics/BloombergSPH_survey/blob/main/Variablesdefinitionsandoutcomes.pdf)
+
+### Updated statistics for final presentation
+- May 12th 2021 [here](https://github.com/tivanics/BloombergSPH_survey/blob/main/Analysisdescriptionforpresentation_May12.pdf)
