@@ -679,9 +679,10 @@ sleephygiene <- sleephygiene %>% mutate(Q69_didyouengagewiththecampaignbinary = 
     Q5_age == "45-54" ~ 1,
     Q5_age == "55-64" ~ 1,
     Q5_age == "64-75" ~ 1
-  ))
-
-
+  )) %>%
+  mutate(POINTSFROMSOCIAL = Instagram.campaign + Text.message.campaign + Word.of.mouth.discussion.with.others) %>% mutate(POINTSFROMSOCIAL = as.numeric((POINTSFROMSOCIAL))) %>%
+  mutate(POINTSFROMPARTICIPATION = as.numeric(POINTSFROMPARTICIPATION))
+  
 #Participating in the campaign
 mylogit <- glm(Q69_didyouengagewiththecampaignbinary ~ Q4_gender_binary + Q10_hoursofsleeplast5workdays + Q10_hoursofsleeppastweekend, family = binomial(link = "logit"), data = sleephygiene)
 tab_model(mylogit)
@@ -710,6 +711,297 @@ tab_model(mylogit)
 #OR LINEAR REGRESSION
 #Causal criteria...
 ```
+
+```{r Define exposure}
+sleephygiene <- sleephygiene %>% mutate(TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION = POINTSFROMPICS1 + POINTSFROMPICS2 + POINTSFROMPICS3 + POINTSFROMPICS4 + POINTFROMENGAGEMENT + POINTSFROMPARTICIPATION + POINTSFROMSOCIAL) %>%
+  mutate(CAMPAIGN_EXPOSURE = case_when(
+    is.na(TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION) ~ NA_real_,
+    TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION >= 5 ~ 2,
+    TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION < 5 & TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION > 0 ~ 1,
+    TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION == 0 ~ 0
+  )) %>% mutate(CAMPAIGN_EXPOSURE = factor(CAMPAIGN_EXPOSURE))
+
+quantile(sleephygiene$TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION, c(.25, .50,  .75, .90, .99))
+```
+
+
+
+```{r Self efficacy to motivation}
+sleephygiene <- sleephygiene %>% 
+  mutate(SELF_EFFICACY_1 = case_when(
+    Q59_canmaintainhealthysleephabits == "Extremely confident" ~ 1,
+    is.na(Q59_canmaintainhealthysleephabits) ~ NA_real_,
+    TRUE ~ 0)) %>%
+  mutate(SELF_EFFICACY_2 = case_when(
+    Q59_canparticipateinbreathing == "Extremely confident" ~ 1,
+    is.na(Q59_canparticipateinbreathing) ~ NA_real_,
+    TRUE ~ 0
+  )) %>%
+  mutate(SELF_EFFICACY_3 = case_when(
+    Q59_cancutoutscreen == "Extremeley confident" ~ 1,
+    is.na(Q59_cancutoutscreen) ~ NA_real_,
+    TRUE ~ 0
+  )) %>% 
+  mutate(SELF_EFFICACY_4 = case_when(
+    Q59_canexercise == "Extremeley confident" ~ 1,
+    is.na(Q59_canexercise) ~ NA_real_,
+    TRUE ~ 0
+  )) %>% mutate(
+  SELF_EFFICACY_COMBINED = SELF_EFFICACY_1 + SELF_EFFICACY_2 + SELF_EFFICACY_3 + SELF_EFFICACY_4) %>%
+  mutate(
+    RESPONSEEFFICACY = case_when(
+    Q44_cuttingoutscreenleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_cuttingoutscreenleadstobettersleep) ~ NA_real_,
+    Q44_exercisingleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_exercisingleadstobettersleep) ~ NA_real_,
+    Q44_breathingexercisesleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_breathingexercisesleadstobettersleep) ~ NA_real_,
+    TRUE ~ 0
+  )) %>%
+  mutate(RESPONSEEFFICACY_1 = case_when(
+    Q44_cuttingoutscreenleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_cuttingoutscreenleadstobettersleep) ~ NA_real_,
+    TRUE ~ 0)) %>%
+  mutate(RESPONSEEFFICACY_2 = case_when(
+    Q44_exercisingleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_exercisingleadstobettersleep) ~ NA_real_,
+    TRUE ~ 0
+  )) %>%
+  mutate(RESPONSEEFFICACY_3 = case_when(
+    Q44_breathingexercisesleadstobettersleep == "Strongly agree" ~ 1,
+    is.na(Q44_breathingexercisesleadstobettersleep) ~ NA_real_,
+    TRUE ~ 0
+  )) %>% mutate(RESPONSEEFFICACY_COMBINED = RESPONSEEFFICACY_1 + RESPONSEEFFICACY_2 + RESPONSEEFFICACY_3)
+
+
+mylogit <- glm(RESPONSEEFFICACY ~ SELF_EFFICACY + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+
+#SELF EFFICACY
+mylinear <- glm(SELF_EFFICACY_COMBINED ~ CAMPAIGN_EXPOSURE + Q4_gender_binary +Q10_hoursofsleeplast5workdays + Q3_role, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+
+#
+mylinear <- glm(pointscombinedperdays ~ SELF_EFFICACY_COMBINED + Q4_gender_binary +Q10_hoursofsleeplast5workdays + Q3_role, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+
+```
+
+```{r Response efficacy}
+mylinear <- glm(RESPONSEEFFICACY_COMBINED ~ CAMPAIGN_EXPOSURE + Q4_gender_binary +Q10_hoursofsleeplast5workdays + Q3_role, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+
+mylinear <- glm(pointscombinedperdays ~ RESPONSEEFFICACY_COMBINED + Q4_gender_binary +Q10_hoursofsleeplast5workdays + Q3_role, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
+
+```{r EXPOSURE to campaign}
+quantile(sleephygiene$TOTALPOINTS_EXCLUDINGDAYSOFPARTICIPATION, c(.25, .50,  .75, .90, .99))
+
+#Dependent variable 
+mylinear <- glm(pointscombinedperdays ~ CAMPAIGN_EXPOSURE, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+
+mylinear <- glm(pointscombinedperdays ~ CAMPAIGN_EXPOSURE + AGESMALLERCATEGORIES + Q4_gender_binary, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
+
+```{r Attitude}
+sleephygiene <- sleephygiene %>% mutate(
+  ATTITUDE = case_when(
+    Q44_goodnightsleepisimportant == "Strongly agree" ~ 1,
+    is.na(Q44_goodnightsleepisimportant) ~ NA_real_,
+    Q44_mentalclarity == "Strongly agree" ~ 1,
+    is.na(Q44_mentalclarity) ~ NA_real_,
+    TRUE ~ 0
+  )
+) %>%
+  mutate(ATTITUDE_1 = case_when(
+    Q44_goodnightsleepisimportant == "Strongly agree" ~ 1,
+    is.na(Q44_goodnightsleepisimportant) ~ NA_real_,
+    TRUE ~ 0
+  )) %>%
+  mutate(ATTITUDE_2 = case_when(
+    Q44_mentalclarity == "Strongly agree" ~ 1,
+    is.na(Q44_mentalclarity) ~ NA_real_,
+    TRUE ~ 0
+  )) %>% mutate(ATTITUDE_COMBINED = ATTITUDE_1 + ATTITUDE_2)
+
+mylogit <- glm(RESPON ~ ATTITUDE + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+#univariable
+mylogit <- glm(ATTITUDE ~ CAMPAIGN_EXPOSURE + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+mylinear <- glm(ATTITUDE_COMBINED ~ CAMPAIGN_EXPOSURE + AGESMALLERCATEGORIES + Q4_gender_binary + Q10_hoursofsleeplast5workdays, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+
+#behavior
+mylinear <- glm(pointscombinedperdays ~ ATTITUDE_COMBINED + AGESMALLERCATEGORIES + Q4_gender_binary + Q10_hoursofsleeplast5workdays, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
+```{r Emotions}
+sleephygiene <- sleephygiene %>% mutate(
+  EMOTIONS = case_when(
+    Q44_feelpositive == "Strongly agree" ~ 1,
+    is.na(Q44_feelpositive) ~ NA_real_,
+    TRUE ~ 0
+  )
+)
+
+mylogit <- glm(RESPONSEEFFICACY ~ EMOTIONS + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+#
+mylogit <- glm(EMOTIONS ~ CAMPAIGN_EXPOSURE + AGESMALLERCATEGORIES + Q10_hoursofsleeplast5workdays +Q4_gender_binary, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+mylinear <- glm(pointscombinedperdays ~ EMOTIONS + AGESMALLERCATEGORIES + Q10_hoursofsleeplast5workdays +Q4_gender_binary, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
+```{r Motivation to intention to perform}
+#sleephygiene <- sleephygiene %>% mutate(
+#  INTENTION = case_when(
+#   Q44_iwillstopscreens == "Strongly agree" ~ 1,
+#    is.na(Q44_iwillstopscreens) ~ NA_real_,
+#    Q44_iwillbreathe == "Strongly agree" ~ 1,
+#    is.na(Q44_iwillbreathe) ~ NA_real_,
+#    Q44_iwillexercise == "Strongly agree" ~ 1,
+#    is.na(Q44_iwillexercise) ~ NA_real_,
+#    TRUE ~ 0
+#  )
+#)
+
+#mylogit <- glm(INTENTION ~ MOTIVATION + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+#tab_model(mylogit)
+```
+
+```{r Behavior}
+quantile(sleephygiene$pointscombinedperdays, c(.25, .50,  .75, .90, .99))
+
+sleephygiene <- sleephygiene %>% mutate(
+  UPPERPERCENTILEexposure = case_when(
+    pointscombinedperdays >= 15 ~ 1,
+    is.na(pointscombinedperdays) ~ NA_real_,
+    TRUE ~ 0
+  )
+) %>%
+  mutate(
+  UPPERPERCENTILEexposure_categories = case_when(
+    pointscombinedperdays >= 15 ~ 2,
+    pointscombinedperdays < 15  ~ 1,
+    is.na(pointscombinedperdays) ~ NA_real_,
+    TRUE ~ 0
+  )
+)
+
+mylogit <- glm(UPPERPERCENTILEexposure ~ INTENTION + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+#
+mylinear <- glm(pointscombinedperdays ~ CAMPAIGN_EXPOSURE + AGESMALLERCATEGORIES + Q4_gender_binary + Q10_hoursofsleeplast5workdays, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
+```{r Exposure}
+mylogit <- glm(happywithsleepqualitycombined ~ UPPERPERCENTILEexposure_categories + Q4_gender_binary +Q10_hoursofsleeplast5workdays, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+```
+
+```{r}
+mylogit <- glm(happywithsleepqualitycombined ~ TOTALPOINTS + Q10_hoursofsleeplast5workdays + Q3_role + Q4_gender_binary + AGESMALLERCATEGORIES, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+mylogit <- glm(happywithsleepqualitycombined ~  pointscombinedperdays + Q10_hoursofsleeplast5workdays + Q3_role + Q4_gender_binary + AGESMALLERCATEGORIES, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+mylogit <- glm(happywithsleepqualitycombined ~  Q67_1 + Q67_2 + Q67_3 + Q10_hoursofsleeplast5workdays + Q3_role + Q4_gender_binary + AGESMALLERCATEGORIES, family = binomial(link = "logit"), data = sleephygiene)
+tab_model(mylogit)
+
+```
+
+```{r}
+#FREQUENCY OF PROMOTED BEHAVIOR
+
+#look at if the people that participated in the campaign hade a higher degree of exposure
+
+#exposure identify the pictures
+#or did something with the messaging 
+#social media content
+#indicate that they are processing the message 
+
+
+#GIVE PEOPLE A POINT FOR EVERY SOURCE TOGETHER IN AN EXPOSURE MEASURE
+#PICTURES, OTHER OPPORTUNITYIES
+#TALKES TO ANYONE
+
+#POEPLE WITH HIGEHR LEVEL OF EXPSOURE WHO RECALLED MORE SOURCES SHOULD REPORT MORE BEHAVIORS
+
+#TAKE OUT INTENTION ---- UNCLEAR WHETHER THAT IS (USED IF YOU DONT HAVE A GOOD BEHAVIOR)
+
+#LEVEL OF EXPOSURE BIVARIATE WAY FIRST WANT TO SEE WHETHER EXPOSURE IS ASSOCIATED WITH THE TIMES YOU ATTEMPTED THE BEHAVIOR
+#THEN YOU WANT TO TEST WHETHER EXPOSURE IS ASSOCIATED WITH SELF EFFICACY AND EMOTIONS
+
+#CUE TO ACTION DROP
+
+#SELF EFFIACY ATTITUE EMOTIONS (PREDICTORS) -- BIVARIATE TESTS OF THE RELATIONSHIP BETWEEN EXPOSURE (HIGH LOW) AND SELF EFFICACY, SELF EFIACY, SELF-EFFICACY 
+
+
+#1#DEMOGRAPHICS --> BEHAVIOR, THEN ADD SELF EFFIACCY< ATTITUDE, SEE IF 2DEMOGRAPHIC VARIABLES STILL SIGNIFICANT THAT TEL
+#3. EXPSOURE ON SELF EFFICACY, EXPOSURE ON ATTITUDE, EXPOSURE on EMOTIONS
+#4 BEHAVIOR PREDICTED BY DEMOGRAPHICS< PYSCHOCSOCIAL ADN EXPOSURE
+
+
+#CORERLATE NUMBER OF BEHAVIORS AND SUBJECTIVE QUALITY OF SLEEP
+#THEN ADD DEMOGRAPHIOCS
+#THEN ADD PSYCHOSOCIAL
+#THEN ADD EXPOSURE 
+
+#MOTIVATION -= RESPONSE EFFICACY THAT IS A BELIEF IN THE BEHAVIOR IN THAT YOU THINK THEY ARE 
+#THOSE CAN BE SELF - EFFIACCYCA
+#SEPARATE BOX FOR RESPONSE EFFICACY NOT MOTIVATION
+
+#DONT NEED INTENTION
+```
+
+```{r}
+sleephygiene <- sleephygiene %>% mutate(
+  CAMPAIGN_EXPOSURE_ANY = case_when(
+    CAMPAIGN_EXPOSURE == "1" ~ 1,
+    CAMPAIGN_EXPOSURE == "2" ~ 1,
+    CAMPAIGN_EXPOSURE == "0" ~ 0,
+    is.na(CAMPAIGN_EXPOSURE) ~ NA_real_
+  )
+) %>%
+  mutate(CAMPAIGN_EXPOSURE = factor(CAMPAIGN_EXPOSURE, labels = c("None", "Low", "High")))
+
+myColors <- ifelse(levels(sleephygiene$CAMPAIGN_EXPOSURE)=="None", rgb(0.1,0.1,0.7,0.5) , 
+              ifelse(levels(sleephygiene$CAMPAIGN_EXPOSURE)=="Low", rgb(0.8,0.1,0.3,0.6),
+              ifelse(levels(sleephygiene$CAMPAIGN_EXPOSURE)=="High", rgb(0.8,0.1,0.7,0.3),
+              "grey90" )))
+
+boxplot(sleephygiene$pointscombinedperdays ~ sleephygiene$CAMPAIGN_EXPOSURE, 
+    col=myColors , 
+    ylab="Number of days participating in any behavior" , xlab="Any campaign exposure")
+
+
+tab1 <- tableby(CAMPAIGN_EXPOSURE ~ pointscombinedperdays,
+                data=sleephygiene, test=TRUE, total=TRUE, 
+                numeric.stats=c("medianq1q3"), numeric.test="kwt", cat.test="chisq")
+summary(tab1, title='Table 1. Baseline information', pfootnote=TRUE, digits = 2)
+```
+
+```{r}
+mylinear <- glm(pointscombinedperdays ~ CAMPAIGN_EXPOSURE +RESPONSEEFFICACY_COMBINED + SELF_EFFICACY_COMBINED + ATTITUDE_COMBINED + EMOTIONS + Q4_gender_binary +Q10_hoursofsleeplast5workdays + Q3_role, family = "gaussian", data = sleephygiene)
+summary(mylinear)
+```
+
 
 
 
